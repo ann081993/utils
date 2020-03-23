@@ -1,4 +1,6 @@
 #### 2019-10-29 chemial similarity matrix
+source("/home/oem/ml/fp_util_src.R")
+
 #### obesogen
 name <- c("Avobenzone", "Oxybenzone", "Dioxybenzone", "Bis(2-ethylhexyl) phthalate",
           "Benzyl butyl phthalate")
@@ -39,10 +41,55 @@ library(corrplot)
 corrplot(fpjacdis_ob_pchem, method = "number", col = colorpanel(100, "azure", "green")) # *** final
 
 #### BPA 2019-12-11
-name <- c("BPA", "AVB", "BP-3", "BP-8", "DEHP", "BBP")
+name <- c("BPA", "AVB", "BP-3", "BP-8", "DEHP", "BBP", "BPH")
 smiles <- c("CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O",
             "CC(C)(C)C1=CC=C(C=C1)C(=O)CC(=O)C2=CC=C(C=C2)OC",
             "COC1=CC(=C(C=C1)C(=O)C2=CC=CC=C2)O",
             "COC1=CC(=C(C=C1)C(=O)C2=CC=CC=C2O)O",
             "CCCCC(CC)COC(=O)C1=CC=CC=C1C(=O)OCC(CC)CCCC",
-            "CCCCOC(=O)C1=CC=CC=C1C(=O)OCC2=CC=CC=C2")
+            "CCCCOC(=O)C1=CC=CC=C1C(=O)OCC2=CC=CC=C2",
+            "C1=CC=C(C=C1)C(=NN)C2=CC=CC=C2")
+
+aa <- read.csv("/home/oem/ml/adipoml/FDA800_200207.csv", stringsAsFactors = FALSE)
+name <- aa$Name[1:50]
+smiles <- aa$Smiles[1:50]
+
+#### 2020-03-23 chemical similarity matrix & chemical space for Molsim
+#1) chemical similarity matrix
+fpmatrix <- smi2fp(smiles)
+fpjacdis <- fp2jacdis(fpmatrix)
+
+rownames(fpjacdis) <- name
+colnames(fpjacdis) <- name
+
+library(gplots)
+color_0 = "white"
+color_1 = "red"
+
+heatmap.2(fpjacdis, col = colorpanel(2000, color_0, color_1), trace = "none", key = FALSE, margins=c(8, 8),
+          sepcolor = "black", colsep = 0:nrow(fpjacdis), rowsep = 0:nrow(fpjacdis), sepwidth=c(0.01,0.01),
+          cellnote = round(fpjacdis, 2), notecol = "black", notecex = 1 + log10(nrow(fpjacdis)), dendrogram = "col",
+          cexRow = 1 + log10(nrow(fpjacdis)), cexCol = 1 + log10(nrow(fpjacdis)))
+
+#2) chemical space
+library(tsne)
+fptsne <- tsne(fpmatrix)
+fptsne <- tsne(fpjacdis)
+plot(fptsne)
+ggplot(data = as.data.frame(fptsne), aes(x = V1, y = V2, size = 3)) + geom_point(show.legend = F) +
+        geom_text_repel(aes(label = name), show.legend = FALSE, box.padding = 0.4) +
+        scale_shape_manual(values=c(16, 25)) +
+        theme_bw(base_size = 20) + coord_equal()
+
+
+fppca <- prcomp(fpmatrix)
+fppca <- prcomp(fpjacdis)
+plot(fppca$x[, 1:2])
+
+library(ggplot2)
+library(ggrepel)
+ggplot(data = as.data.frame(fppca$x[, 1:2]), aes(x = PC1, y = PC2, size = 3)) + geom_point(show.legend = F) +
+        geom_text_repel(aes(label = name), show.legend = FALSE, box.padding = 0.4) +
+        scale_shape_manual(values=c(16, 25)) +
+        theme_bw(base_size = 20) + coord_equal()
+
