@@ -23,3 +23,6 @@ cid2smi <- function(cid) {
         if(class(data) != "try-error") { result <- data$IsomericSMILES[1] }
         return(result)
 } 
+
+cat("Loaded:\n",
+    " function name2smi(), cid2smi()\n")
