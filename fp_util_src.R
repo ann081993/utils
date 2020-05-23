@@ -1,5 +1,5 @@
 #### fp_util_src
-
+# Author: Seungchan An
 library(rcdk)
 library(fingerprint)
 
