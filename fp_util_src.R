@@ -16,7 +16,7 @@ smi2fp <- function(smi, method = "pubchem") {
         result <- list()
         for (i in smi) {
                 cat(i)
-                parsed_smi <- suppressWarnings(parse.smiles(i)[[1]], method = method)
+                parsed_smi <- suppressWarnings(parse.smiles(i)[[1]])
                 fp <- try(get.fingerprint(parsed_smi, method), silent = TRUE)
                 if(!is(fp, 'try-error') | !is.null(parsed_smi)) {
                         result <- append(result, fp)
