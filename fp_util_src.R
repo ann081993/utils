@@ -3,50 +3,62 @@
 library(rcdk)
 library(fingerprint)
 
+# function jacdis
+# returns Jaccard (Tanimoto) similarity between two fingerprints
 jacdis <- function(a1, a2) {
-        g1 <- grep(1, a1)
-        g2 <- grep(1, a2)
-        
-        lint <- length(intersect(g1, g2))
-        luni <- length(union(g1, g2))
-        
-        return(lint/luni)
+        return(as.numeric(1 - dist(rbind(a1, a2), method = "binary")))
 }
 
 # function smi2fp
+# converts SMILES into fingerprint
+# default method "pubchem"
 smi2fp <- function(smi, method = "pubchem") {
         result <- list()
         for (i in smi) {
-                result <- append(result, get.fingerprint(parse.smiles(i)[[1]], method))
+                cat(i)
+                parsed_smi <- suppressWarnings(parse.smiles(i)[[1]], method)
+                fp <- try(get.fingerprint(parsed_smi, method), silent = TRUE)
+                if(!is(fp, 'try-error') | !is.null(parsed_smi)) {
+                        result <- append(result, fp)
+                        cat("\tO", "\n")
+                } else cat("\n")
         }
-        
-        result <- fp.to.matrix(result)
+        if(length(result) > 0) result <- fp.to.matrix(result)
         return(result)
 }
 
 # function fp2jacdis
-fp2jacdis <- function(matrix, names = NULL) {
+# returns similarity matrix from the matrix of fingerprints
+fp2jacdis <- function(matrix, names = NULL, part = NULL) {
         
         t1 <- Sys.time()
-        cat("\n")
         print(t1)
-        cat("\n")
         
-        result <- matrix(nrow = nrow(matrix), ncol = nrow(matrix))
-        for (r1 in 1:nrow(matrix)) { # 2019-10-16 Updated to (O^2)/2 operation, not O^2 
-                for (r2 in r1:nrow(matrix)) {
-                        a1 <- matrix[r1, ]
-                        a2 <- matrix[r2, ]
-                        b <- jacdis(a1, a2)
-                        result[r1, r2] <- b
-                        result[r2, r1] <- b
+        if(is.null(part)) {
+                result <- matrix(nrow = nrow(matrix), ncol = nrow(matrix))
+                for (r1 in 1:nrow(matrix)) { 
+                        for (r2 in r1:nrow(matrix)) {
+                                a1 <- matrix[r1, ]
+                                a2 <- matrix[r2, ]
+                                b <- jacdis(a1, a2)
+                                result[r1, r2] <- b
+                                result[r2, r1] <- b
+                        }
+                }
+        } else {
+                result <- matrix(nrow = part, ncol = nrow(matrix) - part)
+                for (r1 in 1:part) { 
+                        for (r2 in 1:(nrow(matrix) - part)) {
+                                a1 <- matrix[r1, ]
+                                a2 <- matrix[r2 + part, ]
+                                b <- jacdis(a1, a2)
+                                result[r1, r2] <- b
+                        }
                 }
         }
         
         t2 <- Sys.time()
-        cat("\n")
         print(t2)
-        cat("\n")
         print(t2-t1)
         cat("\n")
         
