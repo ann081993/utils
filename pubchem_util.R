@@ -29,7 +29,7 @@ cid2smi <- function(cid) {
 smi2name <- function(smi) {
         result <- NA
         data <- try(readLines(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/",
-                                     smi, "/synonyms/txt", n = 1)), silent = T)
+                                     smi, "/synonyms/txt"), n = 1), silent = T)
         if(class(data) != "try-error") { result <- data }
         return(result)
 }
