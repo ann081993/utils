@@ -24,5 +24,16 @@ cid2smi <- function(cid) {
         return(result)
 } 
 
+# function cid2name()
+# returns name (preferred name) form cid using PubChem PUG REST API
+smi2name <- function(smi) {
+        result <- NA
+        data <- try(readLines(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/",
+                                     smi, "/synonyms/txt", n = 1)), silent = T)
+        if(class(data) != "try-error") { result <- data }
+        return(result)
+}
+       
+
 cat("Loaded:\n",
-    " function name2smi(), cid2smi()\n")
+    " function name2smi(), cid2smi(), smi2name() \n")
