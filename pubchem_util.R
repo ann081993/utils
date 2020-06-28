@@ -24,8 +24,8 @@ cid2smi <- function(cid) {
         return(result)
 } 
 
-# function cid2name()
-# returns name (preferred name) form cid using PubChem PUG REST API
+# function smi2name()
+# returns name (preferred name) form SMILES using PubChem PUG REST API
 smi2name <- function(smi) {
         result <- NA
         data <- try(readLines(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/",
@@ -33,7 +33,17 @@ smi2name <- function(smi) {
         if(class(data) != "try-error") { result <- data }
         return(result)
 }
+
+# function cid2name()
+# returns name (preferred name) form cid using PubChem PUG REST API
+cid2name <- function(cid) {
+    result <- NA
+    data <- try(readLines(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/",
+                                 cid, "/synonyms/txt"), n = 1), silent = T)
+    if(class(data) != "try-error") { result <- data }
+    return(result)
+}
        
 
 cat("Loaded:\n",
-    " function name2smi(), cid2smi(), smi2name() \n")
+    " function name2smi(), cid2smi(), smi2name(), cid2name() \n")
