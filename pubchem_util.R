@@ -69,6 +69,18 @@ get_bioassay <- function(cid) {
                 return(NA) } else { return(bioassay_results) }
 }
 
+# function get_assaysummary()
+# returns assaysummary from a vector list of CIDs using PubChem PUG REST API
+# written 2020-10-14
+get_assaysummary <- function(cid) {
+        result <- NA
+        assaysummary <- try(read.csv(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/",
+                                            paste(cid, collapse = ","), "/assaysummary/CSV"),
+                                     stringsAsFactors = FALSE, encoding = "UTF-8"), silent = T)
+        if(class(assaysummary) != "try-error") { result <- assaysummary }
+        return(result)
+}
+
 # function get_similar()
 # returns a vector of CIDs of similar structure from a CID using PubChem PUG REST API
 # default Threshold = 99, MaxRecords = 50
@@ -114,4 +126,4 @@ filter_smi <- function(smiles) {
 
 cat("Loaded:\n",
     " functions name2smi(), cid2smi(), smi2name(), cid2name(), name2cid(), get_bioassay() \n",
-    " functions get_similar(), get_superstructure(), get_substructure() \n")
+    " functions get_similar(), get_superstructure(), get_substructure(), get_assaysummary() \n")
