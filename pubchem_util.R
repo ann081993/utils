@@ -3,7 +3,7 @@
 # Ref: https://pubchemdocs.ncbi.nlm.nih.gov/pug-rest
 
 # function name2smi()
-# returns isomeric SMILES from chemical name using PubChem PUG REST API
+# returns isomeric SMILES from a chemical name using PubChem PUG REST API
 name2smi <- function(name) {
         result <- NA
         data <- try(read.csv(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/",
@@ -14,7 +14,7 @@ name2smi <- function(name) {
 }
 
 # function cid2smi()
-# returns isomeric SMILES from chemical name using PubChem PUG REST API
+# returns isomeric SMILES from CID using PubChem PUG REST API
 cid2smi <- function(cid) {
         result <- NA
         data <- try(read.csv(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/",
@@ -25,7 +25,7 @@ cid2smi <- function(cid) {
 } 
 
 # function smi2name()
-# returns name (preferred name) from SMILES using PubChem PUG REST API
+# returns a name (preferred name) from SMILES using PubChem PUG REST API
 smi2name <- function(smi) {
         result <- NA
         data <- try(readLines(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/",
@@ -35,7 +35,7 @@ smi2name <- function(smi) {
 }
 
 # function cid2name()
-# returns name (preferred name) from cid using PubChem PUG REST API
+# returns a name (preferred name) from CID using PubChem PUG REST API
 cid2name <- function(cid) {
         result <- NA
         data <- try(readLines(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/",
@@ -45,7 +45,7 @@ cid2name <- function(cid) {
 }
 
 # function name2cid()
-# returns cid from name using PubChem PUG REST API
+# returns CID from a name using PubChem PUG REST API
 # derived from kegg_flavonoids.R written 2019-07-16
 name2cid <- function(name) {
         cid <- tryCatch({ readLines(paste0("http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/",
@@ -59,7 +59,7 @@ name2cid <- function(name) {
 }
 
 # function get_bioassay()
-# returns "biological test results" from cid
+# returns "biological test results" from CID
 # derived from kegg_flavonoids.R written 2019-07-16
 get_bioassay <- function(cid) {
         bioassay_results <- read.csv(paste0("https://pubchem.ncbi.nlm.nih.gov/sdq/sdqagent.cgi?infmt=json&outfmt=jsonp&query={%22download%22:%22*%22,%22collection%22:%22bioactivity%22,%22where%22:{%22ands%22:[{%22cid%22:%22",
@@ -69,5 +69,49 @@ get_bioassay <- function(cid) {
                 return(NA) } else { return(bioassay_results) }
 }
 
+# function get_similar()
+# returns a vector of CIDs of similar structure from a CID using PubChem PUG REST API
+# default Threshold = 99, MaxRecords = 50
+# written 2020-10-14
+get_similar <- function(cid, Threshold = 99, MaxRecords = 50) {
+        result <- NA
+        data <- try(readLines(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/fastsimilarity_2d/cid/",
+                                     cid, "/cids/txt?Threshold=", Threshold, "&MaxRecords=", MaxRecords)), silent = T)
+        if(class(data) != "try-error") { result <- data }
+        return(result)
+}
+
+# function get_superstructure()
+# returns a vector of CIDs with superstructure from a CID using PubChem PUG REST API
+# default MaxRecords = 50
+# written 2020-10-14
+get_superstructure <- function(cid, MaxRecords = 50) {
+        result <- NA
+        data <- try(readLines(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/fastsuperstructure/cid/",
+                                     cid, "/cids/txt?StripHydrogen=true&MaxRecords=", MaxRecords)), silent = T) # a parameter StripHydrogen=true is a default in PubChem Web
+        if(class(data) != "try-error") { result <- data }
+        return(result)
+}
+
+# function get_substructure()
+# returns a vector of CIDs with substructure from a CID using PubChem PUG REST API
+# default MaxRecords = 50
+# written 2020-10-14
+get_substructure <- function(cid, MaxRecords = 50) {
+        result <- NA
+        data <- try(readLines(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/fastsubstructure/cid/",
+                                     cid, "/cids/txt?StripHydrogen=true&MaxRecords=", MaxRecords)), silent = T) # a parameter StripHydrogen=true is a default in PubChem Web
+        if(class(data) != "try-error") { result <- data }
+        return(result)
+}
+
+# function filter_smi()
+# returns filtered SMILES
+filter_smi <- function(smiles) {
+        ind_filter <- grepl("2H|3H|13CH|14CH|[.]", smiles)
+        return(smiles[!ind_filter])
+}
+
 cat("Loaded:\n",
-    " function name2smi(), cid2smi(), smi2name(), cid2name(), name2cid(), get_bioassay() \n")
+    " functions name2smi(), cid2smi(), smi2name(), cid2name(), name2cid(), get_bioassay() \n"
+    " functions get_similar(), get_superstructure(), get_substructure() \n")
