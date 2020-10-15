@@ -113,5 +113,5 @@ filter_smi <- function(smiles) {
 }
 
 cat("Loaded:\n",
-    " functions name2smi(), cid2smi(), smi2name(), cid2name(), name2cid(), get_bioassay() \n"
+    " functions name2smi(), cid2smi(), smi2name(), cid2name(), name2cid(), get_bioassay() \n",
     " functions get_similar(), get_superstructure(), get_substructure() \n")
