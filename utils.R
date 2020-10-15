@@ -32,5 +32,6 @@ htable <- function(x, n = 6) {
         } else {
                 tab <- tail(tab, -n)
         }
+        return(tab)
 }
         
