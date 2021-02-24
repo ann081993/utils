@@ -68,11 +68,17 @@ fp2jacdis <- function(matrix, names = NULL, part = NULL) {
 # function plot_smi
 # plots with 2D structures from SMILES
 plot_smi <- function(smiles, names = NULL, nrow = 3, ncol = 4, part = 1) {
-        cat("... Plotting", nrow * ncol, "of", length(smiles),"chemical structures\n")
-        cat("... Part", part, "of", ceiling(length(smiles) / (nrow * ncol)))
-        smiles <- smiles[c(((nrow * ncol) * (part - 1) + 1):((nrow * ncol) * (part - 1) + nrow * ncol))]
-        names <- names[c(((nrow * ncol) * (part - 1) + 1):((nrow * ncol) * (part - 1) + nrow * ncol))]
+        from = (nrow * ncol) * (part - 1)
+        to = from + ifelse(length(smiles) - from > nrow * ncol,
+                           nrow * ncol,
+                           length(smiles) - from)
+        from = from + 1
         
+        cat("... Plotting", length(from:to), "of", length(smiles),"chemical structures\n")
+        cat("... Part", part, "of", ceiling(length(smiles) / (nrow * ncol)))
+        smiles <- smiles[from:to]
+        names <- names[from:to]
+
         par(mar = c(1,1,1,1), mfrow = c(nrow, ncol))
         for(k in 1:length(smiles)) {
                 m <- parse.smiles(smiles[k])[[1]]
@@ -82,6 +88,7 @@ plot_smi <- function(smiles, names = NULL, nrow = 3, ncol = 4, part = 1) {
                 text(x = 5, y = 1, names[k], cex = 1)
         }
 }
+
 
 cat("Loaded:\n",
     " library rcdk, fingerprint\n",
