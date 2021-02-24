@@ -24,6 +24,26 @@ cid2smi <- function(cid) {
         return(result)
 } 
 
+# function cid2smi_bulk()
+# returns isomeric SMILES from list of CIDs using PubChem PUG REST API
+# handling 300 CIDs per request
+cid2smi_bulk <- function(cid) {
+        result <- NULL
+        parts <- ceiling(length(cid) / 300)
+        for(p in 1:parts) {
+                from = (300 * (p - 1) + 1)
+                to = (300 * (p - 1) + ifelse((parts == p) & length(cid) %% 300 > 0, length(cid) %% 300, 300))
+                part_cid <- cid[from:to]
+                part_cid <- paste(unique(part_cid), collapse = ",")
+                data <- try(read.csv(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/",
+                                            part_cid, "/property/IsomericSMILES/csv"),
+                                     stringsAsFactors = F), silent = T)
+                result <- rbind(result, data)
+                cat("... Fetching SMILES", from, "-", to, ":", p, "of", parts, "\n")
+        }
+        return(result)
+}
+
 # function smi2name()
 # returns a name (preferred name) from SMILES using PubChem PUG REST API
 smi2name <- function(smi) {
@@ -125,5 +145,5 @@ filter_smi <- function(smiles) {
 }
 
 cat("Loaded:\n",
-    " functions name2smi(), cid2smi(), smi2name(), cid2name(), name2cid(), get_bioassay() \n",
+    " functions name2smi(), cid2smi(), cid2smi_bulk(), smi2name(), cid2name(), name2cid(), get_bioassay() \n",
     " functions get_similar(), get_superstructure(), get_substructure(), get_assaysummary() \n")
