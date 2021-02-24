@@ -65,6 +65,24 @@ fp2jacdis <- function(matrix, names = NULL, part = NULL) {
         return(result)
 }
 
+# function plot_smi
+# plots with 2D structures from SMILES
+plot_smi <- function(smiles, names = NULL, nrow = 3, ncol = 4, part = 1) {
+        cat("... Plotting", nrow * ncol, "of", length(smiles),"chemical structures\n")
+        cat("... Part", part, "of", ceiling(length(smiles) / (nrow * ncol)))
+        smiles <- smiles[c(((nrow * ncol) * (part - 1) + 1):((nrow * ncol) * (part - 1) + nrow * ncol))]
+        names <- names[c(((nrow * ncol) * (part - 1) + 1):((nrow * ncol) * (part - 1) + nrow * ncol))]
+        
+        par(mar = c(1,1,1,1), mfrow = c(nrow, ncol))
+        for(k in 1:length(smiles)) {
+                m <- parse.smiles(smiles[k])[[1]]
+                plot(0:10, xaxt = 'n', yaxt = 'n', ann = FALSE, type = 'n', bty = 'n', asp = 1) # asp fixes ratio https://stackoverflow.com/questions/8693558/how-to-define-fixed-aspect-ratio-for-scatter-plot
+                img <- view.image.2d(m, get.depictor(width = 400, height = 400, abbr = 'reagents', style = 'cow', zoom = 1.2))
+                rasterImage(img, 0, 0, 10, 10)
+                text(x = 5, y = 1, names[k], cex = 1)
+        }
+}
+
 cat("Loaded:\n",
     " library rcdk, fingerprint\n",
-    " function smi2fp(), fp2jacdis()\n")
+    " function smi2fp(), fp2jacdis(), plot_smi()\n")
