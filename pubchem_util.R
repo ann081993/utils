@@ -85,7 +85,7 @@ name2cid <- function(name) {
 get_bioassay <- function(cid) {
         bioassay_results <- read.csv(paste0("https://pubchem.ncbi.nlm.nih.gov/sdq/sdqagent.cgi?infmt=json&outfmt=jsonp&query={%22download%22:%22*%22,%22collection%22:%22bioactivity%22,%22where%22:{%22ands%22:[{%22cid%22:%22",
                                             cid, "%22}]},%22order%22:[%22acvalue,asc%22],%22start%22:1,%22limit%22:1000000,%22nullatbottom%22:1}"),
-                                     stringsAsFactors = FALSE, encoding = "UTF-8")
+                                     stringsAsFactors = FALSE, encoding = "UTF-8", quote = "")
         if (names(bioassay_results)[1] == "X.U.FEFF.Warning..no.hits.found.satisfying.your.input.query.criteria.") {
                 return(NA) } else { return(bioassay_results) }
 }
@@ -97,7 +97,7 @@ get_assaysummary <- function(cid) {
         result <- NA
         assaysummary <- try(read.csv(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/",
                                             paste(cid, collapse = ","), "/assaysummary/CSV"),
-                                     stringsAsFactors = FALSE, encoding = "UTF-8"), silent = T)
+                                     stringsAsFactors = FALSE, encoding = "UTF-8", quote = ""), silent = T)
         if(class(assaysummary) != "try-error") { result <- assaysummary }
         return(result)
 }
@@ -116,7 +116,7 @@ get_assaysummary_bulk <- function(cid) {
                 part_cid <- paste(unique(part_cid), collapse = ",")
                 data <- try(read.csv(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/",
                                             part_cid, "/assaysummary/CSV"),
-                                     stringsAsFactors = F, encoding = "UTF-8"), silent = T)
+                                     stringsAsFactors = F, encoding = "UTF-8", quote = ""), silent = T)
                 result <- rbind(result, data)
                 cat("... Fetching assaysummary", from, "-", to, ":", p, "of", parts, "\n")
         }
