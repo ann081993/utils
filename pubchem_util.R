@@ -27,6 +27,7 @@ cid2smi <- function(cid) {
 # function cid2smi_bulk()
 # returns isomeric SMILES from list of CIDs using PubChem PUG REST API
 # handling 300 CIDs per request
+# written 2021-02-26
 cid2smi_bulk <- function(cid) {
         result <- NULL
         parts <- ceiling(length(cid) / 300)
@@ -98,6 +99,27 @@ get_assaysummary <- function(cid) {
                                             paste(cid, collapse = ","), "/assaysummary/CSV"),
                                      stringsAsFactors = FALSE, encoding = "UTF-8"), silent = T)
         if(class(assaysummary) != "try-error") { result <- assaysummary }
+        return(result)
+}
+
+# function cid2smi_bulk()
+# returns assaysummary from a vector list of CIDs using PubChem PUG REST API
+# handling 300 CIDs per request
+# written 2021-02-26
+get_assaysummary_bulk <- function(cid) {
+        result <- NULL
+        parts <- ceiling(length(cid) / 300)
+        for(p in 1:parts) {
+                from = (300 * (p - 1) + 1)
+                to = (300 * (p - 1) + ifelse((parts == p) & length(cid) %% 300 > 0, length(cid) %% 300, 300))
+                part_cid <- cid[from:to]
+                part_cid <- paste(unique(part_cid), collapse = ",")
+                data <- try(read.csv(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/",
+                                            part_cid, "/assaysummary/CSV"),
+                                     stringsAsFactors = F, encoding = "UTF-8"), silent = T)
+                result <- rbind(result, data)
+                cat("... Fetching assaysummary", from, "-", to, ":", p, "of", parts, "\n")
+        }
         return(result)
 }
 
