@@ -108,21 +108,30 @@ get_assaysummary <- function(cid) {
 # written 2021-02-26
 get_assaysummary_bulk <- function(cid) {
         result <- NULL
-        parts <- ceiling(length(cid) / 300)
+        parts <- ceiling(length(cid) / 50)
         for(p in 1:parts) {
-                from = (300 * (p - 1) + 1)
-                to = (300 * (p - 1) + ifelse((parts == p) & length(cid) %% 300 > 0, length(cid) %% 300, 300))
+                from = (50 * (p - 1) + 1)
+                to = (50 * (p - 1) + ifelse((parts == p) & length(cid) %% 50 > 0, length(cid) %% 50, 50))
                 part_cid <- cid[from:to]
                 part_cid <- paste(unique(part_cid), collapse = ",")
                 data <- try(read.csv(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/",
                                             part_cid, "/assaysummary/CSV"),
-                                     stringsAsFactors = F, encoding = "UTF-8", quote = ""), silent = T)
-                result <- rbind(result, data)
+                                     stringsAsFactors = F, encoding = "UTF-8"), silent = T)
+                if(class(data) != "try-error") result <- rbind(result, data)
                 cat("... Fetching assaysummary", from, "-", to, ":", p, "of", parts, "\n")
+        }
+        part_cid <- cid[!(cid %in% unique(result$CID))]
+        if(length(part_cid) > 0) {
+                
+                cat("... Retrying to fetch assaysummary for", length(part_cid), "missings\n")
+                part_cid <- paste(unique(part_cid), collapse = ",")
+                data <- try(read.csv(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/",
+                                            part_cid, "/assaysummary/CSV"),
+                                     stringsAsFactors = F, encoding = "UTF-8"), silent = T)
+                if(class(data) != "try-error") result <- rbind(result, data)
         }
         return(result)
 }
-
 # function get_similar()
 # returns a vector of CIDs of similar structure from a CID using PubChem PUG REST API
 # default Threshold = 99, MaxRecords = 50
