@@ -12,7 +12,7 @@ jacdis <- function(a1, a2) {
 # function smi2fp
 # converts SMILES into fingerprint
 # default method "pubchem"
-smi2fp <- function(smi, method = "pubchem") {
+smi2fp <- function(smi, method = "pubchem", as_matrix = TRUE) {
         result <- list()
         for (i in smi) {
                 cat(i)
@@ -23,7 +23,7 @@ smi2fp <- function(smi, method = "pubchem") {
                         cat("\tO", "\n")
                 } else cat("\n")
         }
-        if(length(result) > 0) result <- fp.to.matrix(result)
+        if(length(result) > 0 & as_matrix) result <- fp.to.matrix(result)
         return(result)
 }
 
