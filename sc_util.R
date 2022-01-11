@@ -50,6 +50,20 @@ BarPlot <- function(object, features = g, ncol = 3, cols = NULL, error = "mean_s
         return(wrap_plots(plist, ncol = ncol))
 }
 
+# function FeatureScatter2
+FeatureScatter2 <- function(object, f1, f2) {
+        df_exp <- t(as.matrix(GetAssayData(object, slot = "data")[c(f1, f2), ]))
+        df_exp <- data.frame(df_exp)
+        summary(df_exp)
+        #df_exp <- df_exp[df_exp[, 1] * df_exp[, 2] > 0, ]
+        dim(df_exp)
+        p <- ggscatter(df_exp, x = colnames(df_exp)[1], y = colnames(df_exp)[2], size = 0.2,
+                  add = "reg.line", add.params = list(color = "blue"), conf.int = TRUE, # add = "reg.line",
+                  cor.coef = TRUE, cor.method = "pearson") +#  + stat_density_2d(aes(fill = ..level..), geom = "polygon") + gradient_fill(c("white", "steelblue"))
+                coord_cartesian(expand = c(0), xlim = c(0, max(df_exp[, 1])), ylim = c(0, max(df_exp[, 2])))
+        return(p)
+}
+
 # function FeatureCol
 FeatureCol <- function() {
         return(scale_color_gradientn(colors = c("gray", "cyan4", "yellow", "red", "darkred")))
