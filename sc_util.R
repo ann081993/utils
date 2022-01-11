@@ -2,8 +2,11 @@
 # Author: Seungchan An
 library(ggplot2)
 library(ggpubr)
-library(patchwork)
+library(ggsci)
+library(viridis)
 library(cowplot)
+library(patchwork)
+library(dplyr)
 library(reshape2)
 
 # function BarPlot
@@ -72,5 +75,5 @@ NoAxesTitle <- function(no_text_x = TRUE) {
 }
 
 cat("Loaded:\n",
-    " library ggplot2, ggpubr, patchwork, cowplot, reshape2\n",
+    " library ggplot2, ggpubr, patchwork, cowplot, reshape2 ...\n",
     " function BarPlot() ...\n")
