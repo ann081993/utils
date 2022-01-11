@@ -1,4 +1,4 @@
-#### fp_util_src
+#### sc_util
 # Author: Seungchan An
 library(ggplot2)
 library(ggpubr)
