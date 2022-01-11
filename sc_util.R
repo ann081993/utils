@@ -10,7 +10,7 @@ library(dplyr)
 library(reshape2)
 
 # function BarPlot
-BarPlot <- function(object, features = g, ncol = 3, cols = NULL, error = "mean_sd") { # the most recent version in "GSE129218 analysis 20210621.R"
+BarPlot <- function(object, features = g, ncol = 3, cols = NULL, error = "mean_sd") { 
         g_ex <- GetAssayData(object = object)[features, ]
         od <- order(object@reductions$pca@cell.embeddings[, "PC_1"])
         
