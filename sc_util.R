@@ -1,6 +1,13 @@
-
+#### fp_util_src
+# Author: Seungchan An
+library(ggplot2)
+library(ggpubr)
+library(patchwork)
+library(cowplot)
 library(reshape2)
-BarPlot <- function(object, features = g, ncol = 3, cols = NULL, error = "mean_sd") {
+
+# function BarPlot
+BarPlot <- function(object, features = g, ncol = 3, cols = NULL, error = "mean_sd") { # the most recent version in "GSE129218 analysis 20210621.R"
         g_ex <- GetAssayData(object = object)[features, ]
         od <- order(object@reductions$pca@cell.embeddings[, "PC_1"])
         
@@ -39,3 +46,31 @@ BarPlot <- function(object, features = g, ncol = 3, cols = NULL, error = "mean_s
         }
         return(wrap_plots(plist, ncol = ncol))
 }
+
+# function FeatureCol
+FeatureCol <- function() {
+        return(scale_color_gradientn(colors = c("gray", "cyan4", "yellow", "red", "darkred")))
+}
+
+# function FeatureTtile
+FeatureTitle <- function(size = 16) {
+        return(theme(plot.title = element_text(hjust = 0.5, size = size, face = "bold.italic")))
+}
+
+# function NoTitle
+NoTitle <- function(no_text_x = TRUE) {
+        return(theme(plot.title = element_blank()))
+}
+
+# function NoAxesTitle
+NoAxesTitle <- function(no_text_x = TRUE) {
+        if (no_text_x) {
+                return(theme(axis.title = element_blank(), axis.text.x = element_blank()))
+        } else {
+                return(theme(axis.title = element_blank()))
+        }
+}
+
+cat("Loaded:\n",
+    " library ggplot2, ggpubr, patchwork, cowplot, reshape2\n",
+    " function BarPlot() ...\n")
