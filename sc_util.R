@@ -9,6 +9,30 @@ library(patchwork)
 library(dplyr)
 library(reshape2)
 
+# function CompositionAnalysis
+CompositionAnalysis <- function(object, x, y) {
+        meta_names <- names(object@meta.data)
+        if(!all(c(x,y) %in% meta_names)) stop(paste0(c("Please check whether input meta name is in:", meta_names), collapse = " "))
+
+        batch <- unlist(object[[x]])
+        clust <- unlist(object[[y]])
+
+        fr <- NULL
+        gr <- NULL
+        cl <- NULL
+        for(b in unique(batch)) {
+                batch_fr <- table(clust[batch == b]) / sum(table(clust[batch == b])) * 100
+                fr <- c(fr, batch_fr)
+                gr <- c(gr, rep(b, length(batch_fr)))
+                cl <- c(cl, names(batch_fr))
+        }
+        composition <- data.frame(fraction = round(fr, 1),
+                                  group = gr,
+                                  cluster = cl)
+        composition$cluster <- factor(composition$cluster, levels = names(batch_fr))
+        composition
+        }
+
 # function BarPlot
 BarPlot <- function(object, features = g, ncol = 3, cols = NULL, error = "mean_sd") { 
         g_ex <- GetAssayData(object = object)[features, ]
