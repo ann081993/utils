@@ -42,7 +42,7 @@ BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mea
         ncell <- ncol(g_ex)
         nfeat <- nrow(g_ex)
         
-        if(is.null(ncol)) { ncol <- nfeat }
+        if(is.null(ncol)) { ncol <- ceiling(sqrt(nfeat)) }
         if(!is.null(group.by)) { Idents(object) <- object[[group.by]] }
         
         g_ex <- g_ex[, od, drop = FALSE]
