@@ -34,9 +34,16 @@ CompositionAnalysis <- function(object, x, y) {
         }
 
 # function BarPlot
-BarPlot <- function(object, features = g, ncol = 3, cols = NULL, error = "mean_sd") { 
+BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mean_se",
+                    group.by = NULL, split.by = NULL) { 
         g_ex <- GetAssayData(object = object)[features, ]
         od <- order(object@reductions$pca@cell.embeddings[, "PC_1"])
+
+        ncell <- ncol(g_ex)
+        nfeat <- nrow(g_ex)
+        
+        if(is.null(ncol)) { ncol <- nfeat }
+        if(!is.null(group.by)) { Idents(object) <- object[[group.by]] }
         
         if(length(features) > 1) {
                 g_ex <- g_ex[, od]
@@ -47,19 +54,22 @@ BarPlot <- function(object, features = g, ncol = 3, cols = NULL, error = "mean_s
                 df$gene <- features
                 df$unused <- NULL
         }
-        df$ident <- rep(Idents(object)[od], nrow(df) / length(Idents(object)))
+        df$ident <- rep(Idents(object)[od], nrow(df) / ncell)
+        if(!is.null(split.by)) { df$split <- rep(unlist(object[[split.by]])[od],  nrow(df) / ncell) }
         
         df <- df[with(df, order(gene, ident)), ]
         df <- df %>% group_by(ident, gene) %>% mutate(med = quantile(value)[4])
         df <- df %>% group_by(ident, gene) %>% mutate(med = median(value, na.rm = TRUE))
         df$cell <- rep(1:length(Idents(object)), nrow(df) / length(Idents(object)))
-        
+
         plist <- list()
         n = 1
         for(g in features) {
                 df_subset <- df[df$gene == g, ]
-                h2 <- ggbarplot(df_subset, x = "ident", y = "value", fill = "ident",
-                                palette = cols, color = "black", add = error, error.plot = "upper_errorbar", add.params = list(width = 0.3)) +
+                fill <- ifelse(is.null(split.by), "ident", "split")
+                h2 <- ggbarplot(df_subset, x = "ident", y = "value", fill = fill,
+                                palette = cols, color = "black", position = position_dodge(0.9),
+                                add = error, error.plot = "upper_errorbar", add.params = list(width = 0.3)) +
                         ggtitle(g) + FeatureTitle() +
                         theme(panel.background = element_blank(),
                               panel.border = element_rect(colour = "black", fill = NA, size = 1), # element_blank(),
