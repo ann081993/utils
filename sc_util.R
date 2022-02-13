@@ -36,24 +36,18 @@ CompositionAnalysis <- function(object, x, y) {
 # function BarPlot
 BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mean_se",
                     group.by = NULL, split.by = NULL) { 
-        g_ex <- GetAssayData(object = object)[features, ]
+        g_ex <- GetAssayData(object = object)[features, , drop = FALSE]
         od <- order(object@reductions$pca@cell.embeddings[, "PC_1"])
-
+        
         ncell <- ncol(g_ex)
         nfeat <- nrow(g_ex)
         
         if(is.null(ncol)) { ncol <- nfeat }
         if(!is.null(group.by)) { Idents(object) <- object[[group.by]] }
         
-        if(length(features) > 1) {
-                g_ex <- g_ex[, od]
-                df <- melt(t(as.matrix(g_ex)), varnames = c("cell", "gene"))
-        } else {
-                g_ex <- g_ex[od]
-                df <- melt(as.matrix(g_ex), varnames = c("cell", "unused"))
-                df$gene <- features
-                df$unused <- NULL
-        }
+        g_ex <- g_ex[, od, drop = FALSE]
+        df <- melt(t(as.matrix(g_ex)), varnames = c("cell", "gene"))
+
         df$ident <- rep(Idents(object)[od], nrow(df) / ncell)
         if(!is.null(split.by)) { df$split <- rep(unlist(object[[split.by]])[od],  nrow(df) / ncell) }
         
@@ -61,7 +55,7 @@ BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mea
         df <- df %>% group_by(ident, gene) %>% mutate(med = quantile(value)[4])
         df <- df %>% group_by(ident, gene) %>% mutate(med = median(value, na.rm = TRUE))
         df$cell <- rep(1:length(Idents(object)), nrow(df) / length(Idents(object)))
-
+        
         plist <- list()
         n = 1
         for(g in features) {
