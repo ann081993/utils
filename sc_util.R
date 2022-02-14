@@ -17,11 +17,11 @@ Subcluster <- function(object, idents = NULL, nvarfeat = 1000, res = 0.05, ndim 
         object <- ScaleData(object)
 
         object <- RunPCA(object)
-
+        object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39)
+                
         object <- FindNeighbors(object, reduction = "tsne", dims = 1:2)
         object <- FindClusters(object, resolution = res)
-
-        object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39)
+        
         p <- DimPlot(object, reduction = "tsne", label = TRUE) & NoAxes()
         print(p)
         object
