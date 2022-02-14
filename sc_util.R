@@ -10,35 +10,44 @@ library(dplyr)
 library(reshape2)
 
 # function OptiClust
-OptiClust <- function(object, idents = NULL) {
+OptiClust <- function(object, idents = NULL, rescale = TRUE, nvarfeats = c(500, 1000, 2000), ndims = c(5, 10, 20)) {
         if(!is.null(idents)) { object <- subset(object, idents = idents) }
-        nvarfeats = c(200, 500, 1000, 2000)
-        ndims = c(5, 10, 20)
+
         nr <- length(nvarfeats)
         nc <- length(ndims)
         
         plist <- list()
+        olist <- list()
         i = 1
         for(nf in nvarfeats) {
                 for(nd in ndims) {
                         cat(i, "/", nr * nc, " ", paste0(nf, " features, ", nd, " dims\n"))
-                        p <- Subcluster(object, nvarfeat = nf, ndim = nd, only.plot = T, verbose = F)
+                        p <- Subcluster(object, rescale = rescale, nvarfeat = nf, ndim = nd, only.plot = T, verbose = F)
                         plist[[i]] <- p
+                        #olist[[i]] <- DietSeurat(object, features = VariableFeatures(object),
+                        #                         dimreducs = c("pca", "tsne"))
                         i = i + 1
                 }
         }
         p <- wrap_plots(plist, ncol = nc, nrow = nr)
         print(p)
         p
+        #result <- list()
+        #result$objects <- olist
+        #result$dimplot <- p
+        #result
 }
 
 # function Subcluster
-Subcluster <- function(object, idents = NULL, nvarfeat = 1000, ndim = 20, res = 0.03, seed = 1, only.plot = FALSE, verbose = TRUE) {
+Subcluster <- function(object, idents = NULL, rescale = TRUE, nvarfeat = 1000, ndim = 20, res = 0.03,
+                       seed = 1, only.plot = FALSE, verbose = TRUE) {
         if(!is.null(idents)) { object <- subset(object, idents = idents) }
-        object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000, verbose = verbose) # same as default
+        if(rescale) {
+                object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000, verbose = verbose) # same as default
+                object <- ScaleData(object, verbose = verbose)
+        }
         object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat, verbose = verbose)
-        object <- ScaleData(object, verbose = verbose)
-        
+
         object <- RunPCA(object, verbose = verbose)
         object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, verbose = verbose)
         
