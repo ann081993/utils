@@ -9,21 +9,49 @@ library(patchwork)
 library(dplyr)
 library(reshape2)
 
-# function Subcluster
-Subcluster <- function(object, idents = NULL, nvarfeat = 1000, res = 0.05, ndim = 20, seed = 1) {
+# function OptiClust
+OptiClust <- function(object, idents = NULL) {
         if(!is.null(idents)) { object <- subset(object, idents = idents) }
-        object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000) # same as default
-        object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat)
-        object <- ScaleData(object)
-
-        object <- RunPCA(object)
-        object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39)
-                
-        object <- FindNeighbors(object, reduction = "tsne", dims = 1:2)
-        object <- FindClusters(object, resolution = res)
+        nvarfeats = c(200, 500, 1000, 2000)
+        ndims = c(5, 10, 20)
+        nr <- length(nvarfeats)
+        nc <- length(ndims)
         
-        p <- DimPlot(object, reduction = "tsne", label = TRUE) & NoAxes()
+        plist <- list()
+        i = 1
+        for(nf in nvarfeats) {
+                for(nd in ndims) {
+                        cat(i, "/", nr * nc, " ", paste0(nf, " features, ", nd, " dims\n"))
+                        p <- Subcluster(object, nvarfeat = nf, ndim = nd, only.plot = T, verbose = F)
+                        plist[[i]] <- p
+                        i = i + 1
+                }
+        }
+        p <- wrap_plots(plist, ncol = nc, nrow = nr)
         print(p)
+        p
+}
+
+# function Subcluster
+Subcluster <- function(object, idents = NULL, nvarfeat = 1000, ndim = 20, res = 0.03, seed = 1, only.plot = FALSE, verbose = TRUE) {
+        if(!is.null(idents)) { object <- subset(object, idents = idents) }
+        object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000, verbose = verbose) # same as default
+        object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat, verbose = verbose)
+        object <- ScaleData(object, verbose = verbose)
+        
+        object <- RunPCA(object, verbose = verbose)
+        object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, verbose = verbose)
+        
+        object <- FindNeighbors(object, reduction = "tsne", dims = 1:2, verbose = verbose)
+        object <- FindClusters(object, resolution = res, verbose = verbose)
+        
+        nclust <- as.numeric(tail(levels(object$seurat_clusters), 1))
+        p <- DimPlot(object, reduction = "tsne", label = TRUE) +
+                ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
+                theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
+                NoAxes() & NoLegend()
+        print(p)
+        if(only.plot) { object <- p }
         object
 }
 
