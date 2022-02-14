@@ -9,6 +9,23 @@ library(patchwork)
 library(dplyr)
 library(reshape2)
 
+# function Subcluster
+Subcluster <- function(object, idents, nvarfeat = 2000, res = 0.05, ndim = 5, seed = 1) {
+        object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000) # same as default
+        object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat) # same as default
+        object <- ScaleData(object)
+
+        object <- RunPCA(object)
+
+        object <- FindNeighbors(object, reduction = "tsne", dims = 1:2)
+        object <- FindClusters(object, resolution = res)
+
+        object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39)
+        p <- DimPlot(object, reduction = "tsne", label = TRUE) & NoAxes()
+        print(p)
+        object
+}
+
 # function CompositionAnalysis
 CompositionAnalysis <- function(object, x, y) {
         meta_names <- names(object@meta.data)
@@ -31,7 +48,7 @@ CompositionAnalysis <- function(object, x, y) {
                                   cluster = cl)
         composition$cluster <- factor(composition$cluster, levels = names(batch_fr))
         composition
-        }
+}
 
 # function BarPlot
 BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mean_se",
@@ -118,4 +135,4 @@ NoAxesTitle <- function(no_text_x = TRUE) {
 
 cat("Loaded:\n",
     " library ggplot2, ggpubr, patchwork, cowplot, reshape2 ...\n",
-    " function BarPlot() ...\n")
+    " function BarPlot(), CompositionAnalysis() Subcluster() ...\n")
