@@ -10,9 +10,10 @@ library(dplyr)
 library(reshape2)
 
 # function Subcluster
-Subcluster <- function(object, idents, nvarfeat = 2000, res = 0.05, ndim = 5, seed = 1) {
+Subcluster <- function(object, idents, nvarfeat = 1000, res = 0.05, ndim = 20, seed = 1) {
+        object <- subset(object, 
         object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000) # same as default
-        object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat) # same as default
+        object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat)
         object <- ScaleData(object)
 
         object <- RunPCA(object)
