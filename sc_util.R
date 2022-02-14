@@ -136,4 +136,4 @@ NoAxesTitle <- function(no_text_x = TRUE) {
 
 cat("Loaded:\n",
     " library ggplot2, ggpubr, patchwork, cowplot, reshape2 ...\n",
-    " function BarPlot(), CompositionAnalysis() Subcluster() ...\n")
+    " function BarPlot(), CompositionAnalysis(), Subcluster() ...\n")
