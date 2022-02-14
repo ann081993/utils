@@ -44,7 +44,7 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, nvarfeat = 1000, n
         if(!is.null(idents)) { object <- subset(object, idents = idents) }
         if(rescale) {
                 object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000, verbose = verbose) # same as default
-                object <- ScaleData(object, verbose = verbose)
+                object <- ScaleData(object, features = rownames(object), verbose = verbose) # scale using all genes
         }
         object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat, verbose = verbose)
 
