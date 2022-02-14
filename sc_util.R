@@ -11,7 +11,7 @@ library(reshape2)
 
 # function Subcluster
 Subcluster <- function(object, idents, nvarfeat = 1000, res = 0.05, ndim = 20, seed = 1) {
-        object <- subset(object, 
+        object <- subset(object, idents = idents)
         object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000) # same as default
         object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat)
         object <- ScaleData(object)
