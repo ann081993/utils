@@ -81,9 +81,9 @@ CompositionAnalysis <- function(object, x, y) {
         meta_names <- names(object@meta.data)
         if(!all(c(x,y) %in% meta_names)) stop(paste0(c("Please check whether input meta name is in:", meta_names), collapse = " "))
 
-        batch <- unlist(object[[x]])
-        clust <- unlist(object[[y]])
-
+        batch <- object[[x]][, 1]
+        clust <- object[[y]][, 1]
+        
         fr <- NULL
         gr <- NULL
         cl <- NULL
@@ -94,9 +94,8 @@ CompositionAnalysis <- function(object, x, y) {
                 cl <- c(cl, names(batch_fr))
         }
         composition <- data.frame(fraction = round(fr, 1),
-                                  group = gr,
-                                  cluster = cl)
-        composition$cluster <- factor(composition$cluster, levels = names(batch_fr))
+                                  group = factor(gr, levels = levels(batch)),
+                                  cluster = factor(cl, levels = levels(clust)))
         return(composition)
 }
 
