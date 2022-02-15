@@ -60,7 +60,7 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, nvarfeat = 1000, n
         
         nclust <- as.numeric(tail(levels(object$seurat_clusters), 1))
         
-        if(!is.null(feature.plot)) {
+        if(is.null(feature.plot)) {
                 p <- DimPlot(object, reduction = "tsne", label = TRUE) + 
                         ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
                         theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
