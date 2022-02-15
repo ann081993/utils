@@ -61,19 +61,19 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, nvarfeat = 1000, n
         nclust <- as.numeric(tail(levels(object$seurat_clusters), 1))
         
         if(is.null(feature.plot)) {
-                p <- DimPlot(object, reduction = "tsne", label = TRUE) + 
+                p <- suppressMessages(DimPlot(object, reduction = "tsne", label = TRUE) + 
                         ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
                         theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
-                        NoAxes() & NoLegend()
+                        NoAxes() & NoLegend())
         } else {
-                p <- FeaturePlot(object, reduction = "tsne", label = TRUE, features = feature.plot, order = TRUE) + 
+                p <- suppressMessages(FeaturePlot(object, reduction = "tsne", label = TRUE, features = feature.plot, order = TRUE) + 
                         ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
                         theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
-                        NoAxes() & NoLegend() & FeatureCol()
+                        NoAxes() & NoLegend() & FeatureCol())
         }
         if(only.plot) { object <- p }
         gc(reset = TRUE)
-        return(suppressWarnings(object))
+        return(object)
 }
 
 # function CompositionAnalysis
