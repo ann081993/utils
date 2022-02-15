@@ -100,12 +100,13 @@ CompositionAnalysis <- function(object, x, y) {
 }
 
 # function CompositionPlot
-CompositionPlot <- function(composition, cols = NULL) {
+CompositionPlot <- function(composition, cols = NULL, ncol = NULL) {
         p <- ggbarplot(data = composition, xlab = "", ylab = "Fraction (%)", 
                        x = "group", y = "fraction",
                        fill = "cluster", facet.by = "cluster", palette = cols, 
                        label = TRUE, lab.pos = "out") +
-                scale_y_continuous(expand = expansion(mult = c(0,0.2))) + rotate_x_text(45)
+                scale_y_continuous(expand = expansion(mult = c(0,0.2))) + rotate_x_text(45) +
+								facet_wrap(~ cluster, ncol = ncol)
         return(p)
 }
 
