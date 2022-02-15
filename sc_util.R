@@ -100,6 +100,16 @@ CompositionAnalysis <- function(object, x, y) {
         return(composition)
 }
 
+# function CompositionPlot
+CompositionPlot <- function(composition, cols = NULL) {
+        p <- ggbarplot(data = composition, xlab = "", ylab = "Fraction (%)", 
+                       x = "group", y = "fraction",
+                       fill = "cluster", facet.by = "cluster", palette = cols, 
+                       label = TRUE, lab.pos = "out") +
+                scale_y_continuous(expand = expansion(mult = c(0,0.2))) + rotate_x_text(45)
+        return(p)
+}
+
 # function BarPlot
 BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mean_se",
                     group.by = NULL, split.by = NULL) { 
