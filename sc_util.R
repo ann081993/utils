@@ -71,10 +71,9 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, nvarfeat = 1000, n
                         theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
                         NoAxes() & NoLegend() & FeatureCol()
         }
-        suppressWarnings(print(p))
         if(only.plot) { object <- p }
         gc(reset = TRUE)
-        return(object)
+        return(suppressWarnings(object))
 }
 
 # function CompositionAnalysis
