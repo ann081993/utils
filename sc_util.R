@@ -10,7 +10,8 @@ library(dplyr)
 library(reshape2)
 
 # function OptiClust
-OptiClust <- function(object, idents = NULL, rescale = TRUE, nvarfeats = c(500, 1000, 2000), ndims = c(5, 10, 20)) {
+OptiClust <- function(object, idents = NULL, rescale = TRUE, feature.plot = NULL,
+                      nvarfeats = c(500, 1000, 2000), ndims = c(5, 10, 20)) {
         if(!is.null(idents)) { object <- subset(object, idents = idents) }
 
         nr <- length(nvarfeats)
@@ -22,7 +23,9 @@ OptiClust <- function(object, idents = NULL, rescale = TRUE, nvarfeats = c(500, 
         for(nf in nvarfeats) {
                 for(nd in ndims) {
                         cat(i, "/", nr * nc, " ", paste0(nf, " features, ", nd, " dims\n"))
-                        p <- Subcluster(object, rescale = rescale, nvarfeat = nf, ndim = nd, only.plot = T, verbose = F)
+                        p <- Subcluster(object, rescale = rescale,
+                                        nvarfeat = nf, ndim = nd,
+                                        only.plot = T, feature.plot = feature.plot, verbose = F)
                         plist[[i]] <- p
                         #olist[[i]] <- DietSeurat(object, features = VariableFeatures(object),
                         #                         dimreducs = c("pca", "tsne"))
@@ -41,14 +44,14 @@ OptiClust <- function(object, idents = NULL, rescale = TRUE, nvarfeats = c(500, 
 
 # function Subcluster
 Subcluster <- function(object, idents = NULL, rescale = TRUE, nvarfeat = 1000, ndim = 20, res = 0.03,
-                       seed = 1, only.plot = FALSE, verbose = TRUE) {
+                       seed = 1, only.plot = FALSE, feature.plot = NULL, verbose = TRUE) {
         if(!is.null(idents)) { object <- subset(object, idents = idents) }
         if(rescale) {
                 object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000, verbose = verbose) # same as default
                 object <- ScaleData(object, features = rownames(object), verbose = verbose) # scale using all genes
         }
         object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat, verbose = verbose)
-
+        
         object <- RunPCA(object, verbose = verbose)
         object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, verbose = verbose)
         
@@ -56,10 +59,18 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, nvarfeat = 1000, n
         object <- FindClusters(object, resolution = res, verbose = verbose)
         
         nclust <- as.numeric(tail(levels(object$seurat_clusters), 1))
-        p <- DimPlot(object, reduction = "tsne", label = TRUE) +
-                ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
-                theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
-                NoAxes() & NoLegend()
+        
+        if(!is.null(feature.plot)) {
+                p <- DimPlot(object, reduction = "tsne", label = TRUE) + 
+                        ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
+                        theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
+                        NoAxes() & NoLegend()
+        } else {
+                p <- FeaturePlot(object, reduction = "tsne", label = TRUE, features = feature.plot) + 
+                        ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
+                        theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
+                        NoAxes() & NoLegend() & FeatureCol()
+        }
         print(p)
         if(only.plot) { object <- p }
         gc(reset = TRUE)
