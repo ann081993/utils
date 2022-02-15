@@ -27,11 +27,12 @@ OptiClust <- function(object, idents = NULL, rescale = TRUE, nvarfeats = c(500, 
                         #olist[[i]] <- DietSeurat(object, features = VariableFeatures(object),
                         #                         dimreducs = c("pca", "tsne"))
                         i = i + 1
+                        gc(reset = TRUE)
                 }
         }
         p <- wrap_plots(plist, ncol = nc, nrow = nr)
         print(p)
-        p
+        return(p)
         #result <- list()
         #result$objects <- olist
         #result$dimplot <- p
@@ -61,7 +62,8 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, nvarfeat = 1000, n
                 NoAxes() & NoLegend()
         print(p)
         if(only.plot) { object <- p }
-        object
+        gc(reset = TRUE)
+        return(object)
 }
 
 # function CompositionAnalysis
@@ -85,7 +87,7 @@ CompositionAnalysis <- function(object, x, y) {
                                   group = gr,
                                   cluster = cl)
         composition$cluster <- factor(composition$cluster, levels = names(batch_fr))
-        composition
+        return(composition)
 }
 
 # function BarPlot
