@@ -66,12 +66,12 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, nvarfeat = 1000, n
                         theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
                         NoAxes() & NoLegend()
         } else {
-                p <- FeaturePlot(object, reduction = "tsne", label = TRUE, features = feature.plot) + 
+                p <- FeaturePlot(object, reduction = "tsne", label = TRUE, features = feature.plot, order = TRUE) + 
                         ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
                         theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
                         NoAxes() & NoLegend() & FeatureCol()
         }
-        print(p)
+        suppressWarnings(print(p))
         if(only.plot) { object <- p }
         gc(reset = TRUE)
         return(object)
