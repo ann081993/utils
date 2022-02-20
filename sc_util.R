@@ -112,7 +112,11 @@ CompositionPlot <- function(composition, cols = NULL, ncol = NULL) {
 
 # function BarPlot
 BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mean_se",
-                    group.by = NULL, split.by = NULL) { 
+                    group.by = NULL, split.by = NULL) {
+	found <- features %in% rownames(object)
+	if(any(!found)) { cat(paste0("The following requested features were not found: ",
+				     paste0(features[!found], collapse = ", "))) }
+	features <- features[found]
         g_ex <- GetAssayData(object = object)[features, , drop = FALSE]
         od <- order(object@reductions$pca@cell.embeddings[, "PC_1"])
         
