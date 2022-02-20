@@ -115,7 +115,7 @@ BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mea
                     group.by = NULL, split.by = NULL) {
 	found <- features %in% rownames(object)
 	if(any(!found)) { cat(paste0("The following requested features were not found: ",
-				     paste0(features[!found], collapse = ", "))) }
+				     paste0(features[!found], collapse = ", "), "\n")) }
 	features <- features[found]
         g_ex <- GetAssayData(object = object)[features, , drop = FALSE]
         od <- order(object@reductions$pca@cell.embeddings[, "PC_1"])
