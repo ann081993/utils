@@ -112,12 +112,12 @@ CompositionPlot <- function(composition, cols = NULL, ncol = NULL) {
 
 # function BarPlot
 BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mean_se",
-                    group.by = NULL, split.by = NULL, slot="data") {
+                    group.by = NULL, split.by = NULL, slot = "data", size = NULL) {
 	found <- features %in% rownames(object)
 	if(any(!found)) { cat(paste0("The following requested features were not found: ",
 				     paste0(features[!found], collapse = ", "), "\n")) }
 	features <- features[found]
-        g_ex <- GetAssayData(object = object, slot=slot)[features, , drop = FALSE]
+        g_ex <- GetAssayData(object = object, slot = slot)[features, , drop = FALSE]
         od <- order(object@reductions$pca@cell.embeddings[, "PC_1"])
         
         ncell <- ncol(g_ex)
@@ -142,8 +142,8 @@ BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mea
         for(g in features) {
                 df_subset <- df[df$gene == g, ]
                 fill <- ifelse(is.null(split.by), "ident", "split")
-                h2 <- ggbarplot(df_subset, x = "ident", y = "value", fill = fill,
-                                palette = cols, color = "black", position = position_dodge(0.9),
+                h2 <- ggbarplot(df_subset, x = "ident", y = "value", fill = fill, size = size,
+                                palette = cols, color = "black", position = position_dodge(0.9), 
                                 add = error, error.plot = "upper_errorbar", add.params = list(width = 0.3)) +
                         ggtitle(g) + FeatureTitle() +
                         theme(panel.background = element_blank(),
