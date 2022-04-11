@@ -144,7 +144,7 @@ BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mea
                 fill <- ifelse(is.null(split.by), "ident", "split")
                 h2 <- ggbarplot(df_subset, x = "ident", y = "value", fill = fill, size = size,
                                 palette = cols, color = "black", position = position_dodge(0.9), 
-                                add = error, error.plot = "upper_errorbar", add.params = list(width = 0.3)) +
+                                add = error, error.plot = "upper_errorbar", add.params = list(width = 0.3, size = size)) +
                         ggtitle(g) + FeatureTitle() +
                         theme(panel.background = element_blank(),
                               panel.border = element_rect(colour = "black", fill = NA, size = 1), # element_blank(),
@@ -179,8 +179,8 @@ FeatureCol <- function() {
 }
 
 # function FeatureTtile
-FeatureTitle <- function(size = 16) {
-        return(theme(plot.title = element_text(hjust = 0.5, size = size, face = "bold.italic")))
+FeatureTitle <- function(size = 16, face = "bold.italic", color = "black") {
+        return(theme(plot.title = element_text(hjust = 0.5, size = size, face = face, color = color)))
 }
 
 # function NoTitle
