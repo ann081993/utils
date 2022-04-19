@@ -179,8 +179,13 @@ FeatureCol <- function() {
 }
 
 # function FeatureCol2
-FeatureCol2 <- function() {
-	return(scale_color_gradientn(colors = c("gray90", "gray90", "gray85", "gray80", "red", "darkred")))
+FeatureCol2 <- function(mode = "red") {
+	if(mode == "red") {
+		col <- scale_color_gradientn(colors = c("gray90", "gray90", "gray85", "gray80", "red", "darkred"))
+	} else {
+		col <- scale_color_gradientn(colors = c("gray90", "gray90", "gray85", "gray80", "blue", "darkblue"))
+	}
+	return(col)
 }
 
 # function FeatureTtile
