@@ -178,6 +178,11 @@ FeatureCol <- function() {
         return(scale_color_gradientn(colors = c("gray", "cyan4", "yellow", "red", "darkred")))
 }
 
+# function FeatureCol2
+FeatureCol2 <- function() {
+	return(scale_color_gradientn(colors = c("gray90", "gray90", "gray85", "gray80", "red", "darkred")))
+}
+
 # function FeatureTtile
 FeatureTitle <- function(size = 16, face = "bold.italic", color = "black") {
         return(theme(plot.title = element_text(hjust = 0.5, size = size, face = face, color = color)))
