@@ -34,4 +34,17 @@ htable <- function(x, n = 6) {
         }
         return(tab)
 }
+
+# function pbar()
+pbar <- function() {
+        # library(progress)
+        l <- 10 # length of for loop
+        pb <- progress_bar$new(format = "Progress: [:bar] :percent, Elapsed tile :elapsedfull",
+                               total = l, width = 80, clear = FALSE)
+        # add tick in for loop
+        for(n in 1:l) {
+                pb$tick
+        }
+}
+        
         
