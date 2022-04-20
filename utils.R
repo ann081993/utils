@@ -40,10 +40,10 @@ pbar <- function() {
         # library(progress)
         l <- 10 # length of for loop
         pb <- progress_bar$new(format = "Progress: [:bar] :percent, Elapsed tile :elapsedfull",
-                               total = l, width = 80, clear = FALSE)
+                               total = l, width = 80, clear = F, force = T)
         # add tick in for loop
         for(n in 1:l) {
-                pb$tick
+                pb$tick()
         }
 }
         
