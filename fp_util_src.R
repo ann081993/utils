@@ -26,7 +26,7 @@ smi2fp <- function(smi, type = "pubchem", circular.type = "ECFP6",
         }
         
         for (i in smi) {
-                cat(i)
+                if(verbose) cat(i)
                 parsed_smi <- suppressWarnings(parse.smiles(i)[[1]])
                 fp <- try(get.fingerprint(parsed_smi, type = type, circular.type = circular.type), silent = TRUE)
                 if(!is(fp, 'try-error') | !is.null(parsed_smi)) {
