@@ -12,16 +12,27 @@ jacdis <- function(a1, a2) {
 # function smi2fp
 # converts SMILES into fingerprint
 # default method "pubchem"
-smi2fp <- function(smi, method = "pubchem", as_matrix = TRUE) {
+fp_types <- c("standard", "extended", "graph", 
+              "pubchem", "maccs", "kr", "estate", 
+              'ECFP0', 'ECFP2', 'ECFP4', 'ECFP6', 'FCFP0', 'FCFP2', 'FCFP4', 'FCFP6')
+
+smi2fp <- function(smi, type = "pubchem", circular.type = "ECFP6",
+                   as_matrix = TRUE, verbose = TRUE) {
         result <- list()
+        ctypes <- c('ECFP0', 'ECFP2', 'ECFP4', 'ECFP6', 'FCFP0', 'FCFP2', 'FCFP4', 'FCFP6')
+        if(type %in% ctypes) {
+                circular.type = type
+                type = "circular"
+        }
+        
         for (i in smi) {
                 cat(i)
                 parsed_smi <- suppressWarnings(parse.smiles(i)[[1]])
-                fp <- try(get.fingerprint(parsed_smi, method), silent = TRUE)
+                fp <- try(get.fingerprint(parsed_smi, type = type, circular.type = circular.type), silent = TRUE)
                 if(!is(fp, 'try-error') | !is.null(parsed_smi)) {
                         result <- append(result, fp)
-                        cat("\tO", "\n")
-                } else cat("\n")
+                        if(verbose) cat("\tO", "\n")
+                } else if(verbose) cat("\n")
         }
         if(length(result) > 0 & as_matrix) result <- fp.to.matrix(result)
         return(result)
@@ -29,10 +40,10 @@ smi2fp <- function(smi, method = "pubchem", as_matrix = TRUE) {
 
 # function fp2jacdis
 # returns similarity matrix from the matrix of fingerprints
-fp2jacdis <- function(matrix, names = NULL, part = NULL) {
+fp2jacdis <- function(matrix, names = NULL, part = NULL, verbose = TRUE) {
         
         t1 <- Sys.time()
-        print(t1)
+        if(verbose) print(t1)
         
         if(is.null(part)) {
                 result <- matrix(nrow = nrow(matrix), ncol = nrow(matrix))
@@ -58,9 +69,9 @@ fp2jacdis <- function(matrix, names = NULL, part = NULL) {
         }
         
         t2 <- Sys.time()
-        print(t2)
-        print(t2-t1)
-        cat("\n")
+        if(verbose) print(t2)
+        if(verbose) print(t2-t1)
+        if(verbose) cat("\n")
         
         return(result)
 }
