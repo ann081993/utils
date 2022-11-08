@@ -100,7 +100,7 @@ plot_smi <- function(smiles, names = NULL, nrow = 3, ncol = 4, part = 1) {
 }
 
 # function smi_ncomp
-# get number of components in SMILES
+# returns number of components in SMILES
 smi_ncomp <- function(smi) {
         if(length(smi) > 1) {
                 sapply(smi, smi_ncomp, USE.NAMES = F)
@@ -110,7 +110,7 @@ smi_ncomp <- function(smi) {
 }
 
 # function smi_largest
-# get the largest component in SMILES
+# returns the largest component in SMILES
 smi_largest <- function(smi) {
         if(length(smi) > 1) {
                 sapply(smi, smi_largest, USE.NAMES = F)
@@ -119,6 +119,13 @@ smi_largest <- function(smi) {
                 smi <- get.smiles(get.largest.component(smi), flavor = smiles.flavors(c("Isomeric")))
                 smi
         }
+}
+
+# function smi_inorg
+# returns whether the structure is inorganic or not
+smi_inorg <- function(smi) {
+        smi <- gsub("Ca|Cd|Ce|Cl|Co|Cr|Cs|Cu", "", smi)
+        !grepl("C|c", smi)
 }
 
 cat("Loaded:\n",
