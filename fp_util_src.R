@@ -124,8 +124,8 @@ smi_largest <- function(smi) {
 # function smi_inorg
 # returns whether the structure is inorganic or not
 smi_inorg <- function(smi) {
-        smi <- gsub("Ca|Cd|Ce|Cl|Co|Cr|Cs|Cu", "", smi)
-        !grepl("C", smi)
+        smi <- gsub("Ca|Cd|Ce|Cl|Co|Cr|Cs|Cu|Ac|Mc|Sc|Tc", "", smi)
+        !grepl("C|c", smi)
 }
 
 cat("Loaded:\n",
