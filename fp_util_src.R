@@ -41,7 +41,6 @@ smi2fp <- function(smi, type = "pubchem", circular.type = "ECFP6",
 # function fp2jacdis
 # returns similarity matrix from the matrix of fingerprints
 fp2jacdis <- function(matrix, names = NULL, part = NULL, verbose = TRUE) {
-        
         t1 <- Sys.time()
         if(verbose) print(t1)
         
@@ -100,6 +99,27 @@ plot_smi <- function(smiles, names = NULL, nrow = 3, ncol = 4, part = 1) {
         }
 }
 
+# function smi_ncomp
+# get number of components in SMILES
+smi_ncomp <- function(smi) {
+        if(length(smi) > 1) {
+                sapply(smi, smi_ncomp, USE.NAMES = F)
+        } else {
+                sum(grepl("[.]", strsplit(smi, split = "")[[1]])) + 1
+        }
+}
+
+# function smi_largest
+# get the largest component in SMILES
+smi_largest <- function(smi) {
+        if(length(smi) > 1) {
+                sapply(smi, smi_largest, USE.NAMES = F)
+        } else {
+                smi <- parse.smiles(smi)[[1]]
+                smi <- get.smiles(get.largest.component(smi), flavor = smiles.flavors(c("Isomeric")))
+                smi
+        }
+}
 
 cat("Loaded:\n",
     " library rcdk, fingerprint\n",
