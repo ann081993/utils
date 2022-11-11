@@ -37,7 +37,8 @@ smi2fp <- function(smi, type = "pubchem", circular.type = "ECFP6",
                 } else if(verbose) cat("\n")
         }
         if(length(result) > 0 & as_matrix) result <- fp.to.matrix(result)
-        return(result)
+        rJava::.jgc()
+        result
 }
 
 # function fp2jacdis
@@ -168,7 +169,7 @@ smi2desc <- function(smi, type = "basic", as_matrix = TRUE, verbose = TRUE) {
         }
         
         desc <- suppressWarnings(eval.desc(mol, which.desc = type, verbose = T))
-        to_remove <- c("Wgamma", "WG.unity", "TAE")
+        to_remove <- c("Wgamma", "WG.unity", "TAE") # remove NA descriptors
         to_remove <- grepl(paste(to_remove, collapse = "|"), colnames(desc))
         desc <- desc[, !to_remove]
         
