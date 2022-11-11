@@ -20,6 +20,7 @@ fp_types <- c("standard", "extended", "graph",
 
 smi2fp <- function(smi, type = "pubchem", circular.type = "ECFP6",
                    as_matrix = TRUE, verbose = TRUE) {
+        if(!(type %in% fp_types)) stop(paste0("Invalid fingerprint category specified\n\tSelect type arg from { ", paste(fp_types, collapse = " "), " }"))
         result <- list()
         ctypes <- c('ECFP0', 'ECFP2', 'ECFP4', 'ECFP6', 'FCFP0', 'FCFP2', 'FCFP4', 'FCFP6')
         if(type %in% ctypes) {
@@ -156,10 +157,10 @@ parse.smiles.3d <- function(smi, iterator = FALSE) {
 
 # function smi2desc
 # generates molecular descriptors from input SMILES
+desc_types <- c("basic", "hybrid", "constitutional", "topological",  "electronic", "geometrical", "all")
+
 smi2desc <- function(smi, type = "basic", as_matrix = TRUE, verbose = TRUE) {
-        dtypes <- c("basic", "hybrid", "constitutional", "topological",  "electronic", "geometrical", "all")
-        
-        if(!(type %in% dtypes)) stop(paste0("Invalid descriptor category specified\n\tSelect type arg from { ", paste(dtypes, collapse = " "), " }"))
+        if(!(type %in% desc_types)) stop(paste0("Invalid descriptor category specified\n\tSelect type arg from { ", paste(desc_types, collapse = " "), " }"))
         if(type == "basic") {
                 mol <- parse.smiles(smi)
                 type <- get.desc.names()[c(9,5,14,28,27,12)]
