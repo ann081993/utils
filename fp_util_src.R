@@ -160,12 +160,15 @@ parse.smiles.3d <- function(smi, iterator = FALSE) {
 desc_types <- c("basic", "hybrid", "constitutional", "topological",  "electronic", "geometrical", "all")
 
 smi2desc <- function(smi, type = "basic", as_matrix = TRUE, verbose = TRUE) {
+        mol <- NULL
+
         if(!(type %in% desc_types)) stop(paste0("Invalid descriptor category specified\n\tSelect type arg from { ", paste(desc_types, collapse = " "), " }"))
+        if(class(smi) == "list") mol <- smi
         if(type == "basic") {
-                mol <- parse.smiles(smi)
+                if(is.null(mol)) mol <- parse.smiles(smi)
                 type <- get.desc.names()[c(9,5,14,28,27,12)]
         } else {
-                mol <- parse.smiles.3d(smi)
+                if(is.null(mol)) mol <- parse.smiles.3d(smi)
                 type <- get.desc.names(type = type)
         }
         
