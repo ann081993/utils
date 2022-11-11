@@ -75,7 +75,7 @@ fp2jacdis <- function(matrix, names = NULL, part = NULL, verbose = TRUE) {
         if(verbose) print(t2-t1)
         if(verbose) cat("\n")
         
-        return(result)
+        result
 }
 
 # function plot_smi
