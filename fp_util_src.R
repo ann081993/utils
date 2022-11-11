@@ -2,6 +2,8 @@
 # Author: Seungchan An
 library(rcdk)
 library(fingerprint)
+library(ChemmineOB)
+library(ChemmineR)
 
 # function jacdis
 # returns Jaccard (Tanimoto) similarity between two fingerprints
@@ -128,6 +130,53 @@ smi_inorg <- function(smi) {
         !grepl("C|c", smi)
 }
 
+# function parse.smiles.3d
+# converts SMILES into molecules with 3D coordinates
+parse.smiles.3d <- function(smi, iterator = FALSE) {
+        writeLines(smi, "tmp.smiles")
+        convertFormatFile("SMI","SDF","tmp.smiles","tmp.sdf")
+        sdf <- read.SDFset("tmp.sdf")
+        message("... SDF file loaded")
+        sdf <- suppressWarnings(generate3DCoords(sdf))
+        message("... 3D coordinates generated")
+        cid(sdf) <- paste0("CID", 1:length(sdf))
+        write.SDF(sdf, file="tmp.sdf")
+        rm(sdf)
+        if(iterator) {
+                mol <- iload.molecules("tmp.sdf", type = "sdf")
+                message("... Iterator prepared for molecules with 3D coordinates")
+        } else {
+                mol <- load.molecules("tmp.sdf")
+                message("... Molecules parsed with 3D coordinates")
+        }
+        rJava::.jgc()
+        mol
+}
+
+# function smi2desc
+# generates molecular descriptors from input SMILES
+smi2desc <- function(smi, type = "basic", as_matrix = TRUE, verbose = TRUE) {
+        dtypes <- c("basic", "hybrid", "constitutional", "topological",  "electronic", "geometrical", "all")
+        
+        if(!(type %in% dtypes)) stop(paste0("Invalid descriptor category specified\n\tSelect type arg from { ", paste(dtypes, collapse = " "), " }"))
+        if(type == "basic") {
+                mol <- parse.smiles(smi)
+                type <- get.desc.names()[c(9,5,14,28,27,12)]
+        } else {
+                mol <- parse.smiles.3d(smi)
+                type <- get.desc.names(type = type)
+        }
+        
+        desc <- suppressWarnings(eval.desc(mol, which.desc = type, verbose = T))
+        to_remove <- c("Wgamma", "WG.unity", "TAE")
+        to_remove <- grepl(paste(to_remove, collapse = "|"), colnames(desc))
+        desc <- desc[, !to_remove]
+        
+        if(as_matrix) desc <- as.matrix(desc)
+        rJava::.jgc()
+        desc
+}
+
 cat("Loaded:\n",
-    " library rcdk, fingerprint\n",
-    " function smi2fp(), fp2jacdis(), plot_smi()\n")
+    " library rcdk, fingerprint, ChemmineR, ChemmineOB \n",
+    " function smi2fp(), fp2jacdis(), plot_smi(), smi2desc() ... \n")
