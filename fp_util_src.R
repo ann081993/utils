@@ -5,10 +5,22 @@ library(fingerprint)
 library(ChemmineOB)
 library(ChemmineR)
 
+ip <- as.data.frame(installed.packages()[, c(1,3:4)])
+ip <- ip[is.na(ip$Priority), 1:2, drop=FALSE]
+
+if("parallel" %in% ip[, 1]) n_threads <- as.integer(detectCores() * 0.8)
+
 # function jacdis
 # returns Jaccard (Tanimoto) similarity between two fingerprints
-jacdis <- function(a1, a2) {
-        return(as.numeric(1 - dist(rbind(a1, a2), method = "binary")))
+if("parallelDist" %in% ip[, 1]) {
+        cat("-- parallel mode --\n",
+        jacdis <- function(x) {
+                1 - as.matrix(parDist(x, method = "binary", diag = T, upper = T, threads = n_threads))
+        }
+} else {
+        jacdis <- function(x) {
+                1 - as.matrix(dist(x, method = "binary", diag = T, upper = T))
+        }
 }
 
 # function smi2fp
@@ -42,41 +54,21 @@ smi2fp <- function(smi, type = "pubchem", circular.type = "ECFP6",
         result
 }
 
-# function fp2jacdis
+# function fp2sim
 # returns similarity matrix from the matrix of fingerprints
-fp2jacdis <- function(matrix, names = NULL, part = NULL, verbose = TRUE) {
+fp2sim <- function(matrix, names = NULL, part = NULL, verbose = TRUE) {
         t1 <- Sys.time()
         if(verbose) print(t1)
         
-        if(is.null(part)) {
-                result <- matrix(nrow = nrow(matrix), ncol = nrow(matrix))
-                for (r1 in 1:nrow(matrix)) { 
-                        for (r2 in r1:nrow(matrix)) {
-                                a1 <- matrix[r1, ]
-                                a2 <- matrix[r2, ]
-                                b <- jacdis(a1, a2)
-                                result[r1, r2] <- b
-                                result[r2, r1] <- b
-                        }
-                }
-        } else {
-                result <- matrix(nrow = part, ncol = nrow(matrix) - part)
-                for (r1 in 1:part) { 
-                        for (r2 in 1:(nrow(matrix) - part)) {
-                                a1 <- matrix[r1, ]
-                                a2 <- matrix[r2 + part, ]
-                                b <- jacdis(a1, a2)
-                                result[r1, r2] <- b
-                        }
-                }
-        }
-        
+        sim <- jacdis(matrix)
+        if(!is.null(part)) {
+                sim <- sim[1:part, -(1:part)]        
         t2 <- Sys.time()
         if(verbose) print(t2)
         if(verbose) print(t2-t1)
         if(verbose) cat("\n")
         
-        result
+        sim
 }
 
 # function plot_smi
@@ -182,6 +174,43 @@ smi2desc <- function(smi, type = "basic", as_matrix = TRUE, verbose = TRUE) {
         desc
 }
 
+# deprecated function fp2jacdis
+# returns similarity matrix from the matrix of fingerprints
+fp2jacdis <- function(matrix, names = NULL, part = NULL, verbose = TRUE) {
+        t1 <- Sys.time()
+        if(verbose) print(t1)
+        
+        if(is.null(part)) {
+                result <- matrix(nrow = nrow(matrix), ncol = nrow(matrix))
+                for (r1 in 1:nrow(matrix)) { 
+                        for (r2 in r1:nrow(matrix)) {
+                                a1 <- matrix[r1, ]
+                                a2 <- matrix[r2, ]
+                                b <- jacdis(a1, a2)
+                                result[r1, r2] <- b
+                                result[r2, r1] <- b
+                        }
+                }
+        } else {
+                result <- matrix(nrow = part, ncol = nrow(matrix) - part)
+                for (r1 in 1:part) { 
+                        for (r2 in 1:(nrow(matrix) - part)) {
+                                a1 <- matrix[r1, ]
+                                a2 <- matrix[r2 + part, ]
+                                b <- jacdis(a1, a2)
+                                result[r1, r2] <- b
+                        }
+                }
+        }
+        
+        t2 <- Sys.time()
+        if(verbose) print(t2)
+        if(verbose) print(t2-t1)
+        if(verbose) cat("\n")
+        
+        result
+}
+
 cat("Loaded:\n",
     " library rcdk, fingerprint, ChemmineR, ChemmineOB \n",
-    " function smi2fp(), fp2jacdis(), plot_smi(), smi2desc() ... \n")
+    " function smi2fp(), fp2sim(), plot_smi(), smi2desc() ... \n")
