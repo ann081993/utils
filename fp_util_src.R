@@ -17,7 +17,7 @@ if("parallel" %in% ip[, 1]) {
 # returns Jaccard (Tanimoto) similarity between two fingerprints
 if("parallelDist" %in% ip[, 1]) {
         library(parallelDist)
-        cat("-- parallel mode --\n",
+        cat("-- parallel mode --\n")
         jacdis <- function(x) {
                 1 - as.matrix(parDist(x, method = "binary", diag = T, upper = T, threads = n_threads))
         }
