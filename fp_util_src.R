@@ -8,10 +8,8 @@ library(ChemmineR)
 ip <- as.data.frame(installed.packages()[, c(1,3:4)])
 ip <- ip[is.na(ip$Priority), 1:2, drop=FALSE]
 
-if("parallel" %in% ip[, 1]) {
-        library(parallel)
-        n_threads <- as.integer(detectCores() * 0.8)
-}
+library(parallel)
+n_threads <- as.integer(detectCores() * 0.8)
 
 # function jacdis
 # returns Jaccard (Tanimoto) similarity between two fingerprints
