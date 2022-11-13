@@ -67,7 +67,7 @@ fp2sim <- function(matrix, names = NULL, part = NULL, verbose = TRUE) {
         if(verbose) print(t1)
         
         sim <- jacdis(matrix)
-        if(!is.null(part)) sim <- sim[1:part, -(1:part)]        
+        if(!is.null(part)) sim <- sim[1:part, -(1:part), drop=FALSE]        
         t2 <- Sys.time()
         if(verbose) print(t2)
         if(verbose) print(t2-t1)
