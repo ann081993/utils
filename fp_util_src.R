@@ -17,7 +17,11 @@ if("parallelDist" %in% ip[, 1]) {
         library(parallelDist)
         cat("-- parallel mode --\n")
         jacdis <- function(x) {
-                1 - as.matrix(parDist(x, method = "binary", diag = T, upper = T, threads = n_threads))
+                if(length(x) > 10000) {
+                        1 - as.matrix(parDist(x, method = "binary", diag = T, upper = T, threads = n_threads))
+                } else {
+                        1 - as.matrix(dist(x, method = "binary", diag = T, upper = T))
+                }
         }
 } else {
         jacdis <- function(x) {
