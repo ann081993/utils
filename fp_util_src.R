@@ -62,12 +62,26 @@ smi2fp <- function(smi, type = "pubchem", circular.type = "ECFP6",
 
 # function fp2sim
 # returns similarity matrix from the matrix of fingerprints
-fp2sim <- function(matrix, names = NULL, part = NULL, verbose = TRUE) {
+fp2sim <- function(fp, names = NULL, part = NULL, verbose = TRUE) {
         t1 <- Sys.time()
         if(verbose) print(t1)
-        
-        sim <- jacdis(matrix)
-        if(!is.null(part)) sim <- sim[1:part, -(1:part), drop=FALSE]        
+        if(is.null(part)) {
+                sim <- jacdis(fp)
+                print(dim(sim))
+        } else {
+                sim <- matrix(nrow = part, ncol = nrow(fp) - part)
+                print(dim(sim))
+                for (r1 in 1:part) { 
+                        for (r2 in 1:(nrow(fp) - part)) {
+                                a1 <- fp[r1, ]
+                                a2 <- fp[r2 + part, ]
+                                b <- jacdis(rbind(a1, a2))[1,2]
+                                sim[r1, r2] <- b
+                        }
+                }
+                rownames(sim) <- 1:nrow(sim)
+                colnames(sim) <- 1:ncol(sim)
+        }
         t2 <- Sys.time()
         if(verbose) print(t2)
         if(verbose) print(t2-t1)
