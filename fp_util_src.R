@@ -67,10 +67,10 @@ fp2sim <- function(fp, names = NULL, part = NULL, verbose = TRUE) {
         if(verbose) print(t1)
         if(is.null(part)) {
                 sim <- jacdis(fp)
-                print(dim(sim))
+                if(verbose) print(dim(sim))
         } else {
                 sim <- matrix(nrow = part, ncol = nrow(fp) - part)
-                print(dim(sim))
+                if(verbose) print(dim(sim))
                 for (r1 in 1:part) { 
                         for (r2 in 1:(nrow(fp) - part)) {
                                 a1 <- fp[r1, ]
@@ -86,7 +86,7 @@ fp2sim <- function(fp, names = NULL, part = NULL, verbose = TRUE) {
         if(verbose) print(t2)
         if(verbose) print(t2-t1)
         if(verbose) cat("\n")
-        
+        gc()
         sim
 }
 
@@ -128,10 +128,13 @@ smi_ncomp <- function(smi) {
 # returns the largest component in SMILES
 smi_largest <- function(smi) {
         if(length(smi) > 1) {
-                sapply(smi, smi_largest, USE.NAMES = F)
+                smi <- sapply(smi, smi_largest, USE.NAMES = F)
+                rJava::.jgc()
+                smi
         } else {
                 smi <- parse.smiles(smi)[[1]]
                 smi <- get.smiles(get.largest.component(smi), flavor = smiles.flavors(c("Isomeric")))
+                rJava::.jgc()
                 smi
         }
 }
