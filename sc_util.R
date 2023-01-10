@@ -55,10 +55,11 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, vars.to.regress = 
         
 	if(component.analysis == "ica") {		
 		object <- RunICA(object, verbose = verbose)
+		object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, redunction = "ica", verbose = verbose)
 		} else {
 		object <- RunPCA(object, verbose = verbose)
+		object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, verbose = verbose)
 	}
-	object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, redunction = component.analysis, verbose = verbose)
         
         object <- FindNeighbors(object, reduction = "tsne", dims = 1:2, verbose = verbose)
         object <- FindClusters(object, resolution = res, verbose = verbose)
