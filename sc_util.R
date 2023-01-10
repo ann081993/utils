@@ -43,12 +43,13 @@ OptiClust <- function(object, idents = NULL, rescale = TRUE, feature.plot = NULL
 }
 
 # function Subcluster
-Subcluster <- function(object, idents = NULL, rescale = TRUE, nvarfeat = 1000, ndim = 20, res = 0.03, component.analysis = "pca",
+Subcluster <- function(object, idents = NULL, rescale = TRUE, vars.to.regress = NULL,
+		       component.analysis = "pca", nvarfeat = 1000, ndim = 20, res = 0.03, 
                        seed = 1, only.plot = FALSE, feature.plot = NULL, verbose = TRUE) {
         if(!is.null(idents)) { object <- subset(object, idents = idents) }
         if(rescale) {
                 object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000, verbose = verbose) # same as default
-                object <- ScaleData(object, features = rownames(object), vars.to.regress = "nCount_RNA", verbose = verbose) # scale using all genes
+                object <- ScaleData(object, features = rownames(object), vars.to.regress = vars.to.regress, verbose = verbose) # scale using all genes
         }
         object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat, verbose = verbose)
         
