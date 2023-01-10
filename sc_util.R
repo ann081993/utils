@@ -55,7 +55,7 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, vars.to.regress = 
         
 	if(component.analysis == "ica") {		
 		object <- RunICA(object, verbose = verbose)
-		object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, redunction = "ica", verbose = verbose)
+		object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, reduction = "ica", verbose = verbose)
 		} else {
 		object <- RunPCA(object, verbose = verbose)
 		object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, verbose = verbose)
