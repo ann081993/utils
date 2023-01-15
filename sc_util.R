@@ -59,6 +59,7 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, vars.to.regress = 
 		ind <- ae > (mean(ae) / 2)
 		print(paste("Using", sum(ind), "/", length(ind), "variable features"))
 		VariableFeatures(object) <- vf[ind]
+	}
         
 	if(component.analysis == "ica") {		
 		object <- RunICA(object, verbose = verbose)
