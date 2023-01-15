@@ -55,7 +55,7 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, vars.to.regress = 
 	if(vf.filter) {
 		vf <- VariableFeatures(object)
 		ae <- AverageExpression(object, features = vf)
-		ae <- colSums(t(ae$RNA)))
+		ae <- colSums(t(ae$RNA))
 		ind <- ae > (mean(ae) / 2)
 		print(paste("Using", sum(ind), "/", length(ind), "variable features"))
 		VariableFeatures(object) <- vf[ind]
