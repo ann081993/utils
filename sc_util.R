@@ -44,7 +44,7 @@ OptiClust <- function(object, idents = NULL, rescale = TRUE, feature.plot = NULL
 
 # function Subcluster
 Subcluster <- function(object, idents = NULL, rescale = TRUE, vars.to.regress = NULL,
-		       component.analysis = "pca", nvarfeat = 1000, ndim = 20, res = 0.03, 
+		       component.analysis = "pca", nvarfeat = 1000, vf.filter = FALSE, ndim = 20, res = 0.03, 
                        seed = 1, only.plot = FALSE, feature.plot = NULL, verbose = TRUE) {
         if(!is.null(idents)) { object <- subset(object, idents = idents) }
         if(rescale) {
@@ -52,6 +52,13 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, vars.to.regress = 
                 object <- ScaleData(object, features = rownames(object), vars.to.regress = vars.to.regress, verbose = verbose) # scale using all genes
         }
         object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat, verbose = verbose)
+	if(vf.filter) {
+		vf <- VariableFeatures(object)
+		ae <- AverageExpression(object, features = vf)
+		ae <- colSums(t(ae$RNA)))
+		ind <- ae > (mean(ae) / 2)
+		print(paste("Using", sum(ind), "/", length(ind), "variable features"))
+		VariableFeatures(object) <- vf[ind]
         
 	if(component.analysis == "ica") {		
 		object <- RunICA(object, verbose = verbose)
