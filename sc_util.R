@@ -13,7 +13,7 @@ library(reshape2)
 OptiClust <- function(object, idents = NULL, rescale = TRUE, feature.plot = NULL,
                       nvarfeats = c(500, 1000, 2000), ndims = c(5, 10, 20)) {
         if(!is.null(idents)) { object <- subset(object, idents = idents) }
-
+        
         nr <- length(nvarfeats)
         nc <- length(ndims)
         
@@ -43,47 +43,54 @@ OptiClust <- function(object, idents = NULL, rescale = TRUE, feature.plot = NULL
 }
 
 # function Subcluster
-Subcluster <- function(object, idents = NULL, rescale = TRUE, vars.to.regress = NULL,
-		       component.analysis = "pca", nvarfeat = 1000, vf.filter = FALSE, ndim = 20, res = 0.03, 
+Subcluster <- function(object, idents = NULL,
+                       normalize = TRUE, nvarfeat = 1000, vf.filter = FALSE, 
+                       scale = TRUE, scale.all = TRUE, vars.to.regress = NULL,
+                       component.analysis = "pca", ndim = 20,
+                       reduction =  "tsne", iter = 1000,
+                       res = 0.03, fn.reudction = "tsne",
                        seed = 1, only.plot = FALSE, feature.plot = NULL, verbose = TRUE) {
+        # scale.all == T | F do not affect reduced dimensions and clusters
         if(!is.null(idents)) { object <- subset(object, idents = idents) }
-        if(rescale) {
-                object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000, verbose = verbose) # same as default
-                object <- ScaleData(object, features = rownames(object), vars.to.regress = vars.to.regress, verbose = verbose) # scale using all genes
-        }
+        if(normalize) { object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000, verbose = verbose) } # same as default
         object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = nvarfeat, verbose = verbose)
-	if(vf.filter) {
-		vf <- VariableFeatures(object)
-		ae <- AverageExpression(object, features = vf)
-		ae <- colSums(t(ae$RNA))
-		ind <- ae > (mean(ae) / 2)
-		print(paste("Using", sum(ind), "/", length(ind), "variable features"))
-		VariableFeatures(object) <- vf[ind]
-	}
+        vf <- VariableFeatures(object)
+        if(vf.filter) {
+                ae <- AverageExpression(object, features = vf)
+                ae <- colSums(t(ae$RNA))
+                ind <- ae > (mean(ae) / 2)
+                print(paste("Using", sum(ind), "/", length(ind), "variable features"))
+                VariableFeatures(object) <- vf[ind]
+        }
+        if(scale.all) { vf <- rownames(object) }
+        if(scale) { object <- ScaleData(object, features = vf, vars.to.regress = vars.to.regress, verbose = verbose) } # scale using all genes
         
-	if(component.analysis == "ica") {		
-		object <- RunICA(object, verbose = verbose)
-		object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, reduction = "ica", verbose = verbose)
-		} else {
-		object <- RunPCA(object, verbose = verbose)
-		object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, verbose = verbose)
-	}
-        
-        object <- FindNeighbors(object, reduction = "tsne", dims = 1:2, verbose = verbose)
+        if(component.analysis == "ica") {		
+                object <- RunICA(object, verbose = verbose)
+                object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, reduction = "ica", max_iter = iter, verbose = verbose)
+        } else {
+                object <- RunPCA(object, verbose = verbose)
+                object <- RunTSNE(object, dims = 1:ndim, seed.use = seed, num_threads = 39, max_iter = iter, verbose = verbose)
+        }
+        if(fn.reudction == "tsne") {
+                object <- FindNeighbors(object, reduction = "tsne", dims = 1:2, verbose = verbose)
+        } else {
+                object <- FindNeighbors(object, reduction = component.analysis, dims = 1:ndim, verbose = verbose)
+        }
         object <- FindClusters(object, resolution = res, verbose = verbose)
         
         nclust <- as.numeric(tail(levels(object$seurat_clusters), 1))
         
         if(is.null(feature.plot)) {
                 p <- suppressMessages(DimPlot(object, reduction = "tsne", label = TRUE) + 
-                        ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
-                        theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
-                        NoAxes() & NoLegend())
+                                              ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
+                                              theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
+                                              NoAxes() & NoLegend())
         } else {
                 p <- suppressMessages(FeaturePlot(object, reduction = "tsne", label = TRUE, features = feature.plot, order = TRUE) + 
-                        ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
-                        theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
-                        NoAxes() & NoLegend() & FeatureCol())
+                                              ggtitle(paste0(nvarfeat, " variable features for PCA\n", ndim, " dimensions for t-SNE\n", nclust + 1, " clusters (res=", res, ")")) +
+                                              theme(plot.title = element_text(hjust = 0.5, size = 10, face = "plain")) &
+                                              NoAxes() & NoLegend() & FeatureCol())
         }
         if(only.plot) { object <- p }
         gc(reset = TRUE)
@@ -94,7 +101,7 @@ Subcluster <- function(object, idents = NULL, rescale = TRUE, vars.to.regress = 
 CompositionAnalysis <- function(object, x, y) {
         meta_names <- names(object@meta.data)
         if(!all(c(x,y) %in% meta_names)) stop(paste0(c("Please check whether input meta name is in:", meta_names), collapse = " "))
-
+        
         batch <- object[[x]][, 1]
         clust <- object[[y]][, 1]
         
@@ -120,17 +127,57 @@ CompositionPlot <- function(composition, cols = NULL, ncol = NULL) {
                        fill = "cluster", facet.by = "cluster", palette = cols, 
                        label = TRUE, lab.pos = "out") +
                 scale_y_continuous(expand = expansion(mult = c(0,0.2))) + rotate_x_text(45) +
-								facet_wrap(~ cluster, ncol = ncol)
+                facet_wrap(~ cluster, ncol = ncol)
+        return(p)
+}
+
+# function ClusterDEG
+ClusterDEG <- function(object, cont, exp) {
+        barcode_df <- FetchData(object, vars = c("orig.ident", "celltypes"))
+        barcode_df$barcode <- rownames(barcode_df)
+        
+        de_results <- NULL
+        for(cl in levels(barcode_df$celltypes)) {
+                cells1 <- barcode_df %>%
+                        filter(grepl(cont, orig.ident)) %>%
+                        filter(celltypes == cl) %>%
+                        pull(barcode)
+                cells2 <- barcode_df %>%
+                        filter(grepl(exp, orig.ident)) %>%
+                        filter(celltypes == cl) %>%
+                        pull(barcode)
+                
+                if(length(cells1) > 3 & length(cells2) > 3) {
+                        de <- FindMarkers(object, ident.1 = cells2, ident.2 = cells1,
+                                          logfc.threshold = 0.1, min.pct = 0.05, test.use = "wilcox") # logfc.threshold = 0.25
+                        de$celltype <- cl
+                        de$symbol <- rownames(de)
+                        de_results <- rbind(de_results, de)
+                }
+        }
+        de_results[de_results$p_val_adj < 0.05, ]
+}
+
+# function DotPlot2
+DotPlot2 <- function(object, features = g) {
+        p <- DotPlot(object, features = features) +
+                theme(panel.background = element_blank(),
+                      panel.border = element_rect(colour = "black", fill = NA, size = 1), # element_blank(),
+                      #axis.text.x.bottom = element_blank(), # axis.ticks.x = element_blank()
+                      axis.title.x = element_blank(),
+                      axis.text.x = element_text(face = "italic"),
+                      axis.line.x = element_blank(),
+                      axis.line.y = element_blank()) & FeatureCol2(ngray = 2) & rotate_x_text(45)
         return(p)
 }
 
 # function BarPlot
 BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mean_se",
                     group.by = NULL, split.by = NULL, slot = "data", size = NULL) {
-	found <- features %in% rownames(object)
-	if(any(!found)) { cat(paste0("The following requested features were not found: ",
-				     paste0(features[!found], collapse = ", "), "\n")) }
-	features <- features[found]
+        found <- features %in% rownames(object)
+        if(any(!found)) { cat(paste0("The following requested features were not found: ",
+                                     paste0(features[!found], collapse = ", "), "\n")) }
+        features <- features[found]
         g_ex <- GetAssayData(object = object, slot = slot)[features, , drop = FALSE]
         od <- order(object@reductions$pca@cell.embeddings[, "PC_1"])
         
@@ -142,7 +189,7 @@ BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mea
         
         g_ex <- g_ex[, od, drop = FALSE]
         df <- melt(t(as.matrix(g_ex)), varnames = c("cell", "gene"))
-
+        
         df$ident <- rep(Idents(object)[od], nrow(df) / ncell)
         if(!is.null(split.by)) { df$split <- rep(unlist(object[[split.by]])[od],  nrow(df) / ncell) }
         
@@ -181,8 +228,8 @@ FeatureScatter2 <- function(object, f1, f2) {
         #df_exp <- df_exp[df_exp[, 1] * df_exp[, 2] > 0, ]
         dim(df_exp)
         p <- ggscatter(df_exp, x = colnames(df_exp)[1], y = colnames(df_exp)[2], size = 0.2,
-                  add = "reg.line", add.params = list(color = "blue"), conf.int = TRUE, # add = "reg.line",
-                  cor.coef = TRUE, cor.method = "pearson") +#  + stat_density_2d(aes(fill = ..level..), geom = "polygon") + gradient_fill(c("white", "steelblue"))
+                       add = "reg.line", add.params = list(color = "blue"), conf.int = TRUE, # add = "reg.line",
+                       cor.coef = TRUE, cor.method = "pearson") +#  + stat_density_2d(aes(fill = ..level..), geom = "polygon") + gradient_fill(c("white", "steelblue"))
                 coord_cartesian(expand = c(0), xlim = c(0, max(df_exp[, 1])), ylim = c(0, max(df_exp[, 2])))
         return(p)
 }
