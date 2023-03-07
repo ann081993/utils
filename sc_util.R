@@ -132,24 +132,24 @@ CompositionPlot <- function(composition, cols = NULL, ncol = NULL) {
 }
 
 # function ClusterDEG
-ClusterDEG <- function(object, cont, exp) {
+ClusterDEG <- function(object, cont, exp, test.use = "wilcox") {
         barcode_df <- FetchData(object, vars = c("orig.ident", "celltypes"))
         barcode_df$barcode <- rownames(barcode_df)
         
         de_results <- NULL
         for(cl in levels(barcode_df$celltypes)) {
                 cells1 <- barcode_df %>%
-                        filter(grepl(cont, orig.ident)) %>%
+                        filter(orig.ident == cont)) %>%
                         filter(celltypes == cl) %>%
                         pull(barcode)
                 cells2 <- barcode_df %>%
-                        filter(grepl(exp, orig.ident)) %>%
+                        filter(orig.ident == exp) %>%
                         filter(celltypes == cl) %>%
                         pull(barcode)
                 
                 if(length(cells1) > 3 & length(cells2) > 3) {
                         de <- FindMarkers(object, ident.1 = cells2, ident.2 = cells1,
-                                          logfc.threshold = 0.1, min.pct = 0.05, test.use = "wilcox") # logfc.threshold = 0.25
+                                          logfc.threshold = 0.1, min.pct = 0.05, test.use = test.use) # logfc.threshold = 0.25
                         de$celltype <- cl
                         de$symbol <- rownames(de)
                         de_results <- rbind(de_results, de)
