@@ -139,7 +139,7 @@ ClusterDEG <- function(object, cont, exp, test.use = "wilcox") {
         de_results <- NULL
         for(cl in levels(barcode_df$celltypes)) {
                 cells1 <- barcode_df %>%
-                        filter(orig.ident == cont)) %>%
+                        filter(orig.ident == cont) %>%
                         filter(celltypes == cl) %>%
                         pull(barcode)
                 cells2 <- barcode_df %>%
