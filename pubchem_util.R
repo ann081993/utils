@@ -65,6 +65,16 @@ cid2name <- function(cid) {
         return(result)
 }
 
+# function cid2cas()
+# returns a CAS no. from CID using PubChem PUG REST API
+cid2cas <- function(cid) {
+        result <- NA
+        data <- try(readLines(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/",
+                                     cid, "/xrefs/RN/txt"), n = 1), silent = T)
+        if(class(data) != "try-error") { result <- data }
+        return(result)
+}
+
 # function name2cid()
 # returns CID from a name using PubChem PUG REST API
 # derived from kegg_flavonoids.R written 2019-07-16
