@@ -4,30 +4,7 @@ library(rcdk)
 library(fingerprint)
 library(ChemmineOB)
 library(ChemmineR)
-
-ip <- as.data.frame(installed.packages()[, c(1,3:4)])
-ip <- ip[is.na(ip$Priority), 1:2, drop=FALSE]
-
-library(parallel)
-n_threads <- as.integer(detectCores() * 0.8)
-
-# function jacdis
-# returns Jaccard (Tanimoto) similarity between two fingerprints
-if("parallelDist" %in% ip[, 1]) {
-        library(parallelDist)
-        cat("-- parallel mode --\n")
-        jacdis <- function(x) {
-                if(length(x) > 10000) {
-                        1 - as.matrix(parDist(x, method = "binary", diag = T, upper = T, threads = n_threads))
-                } else {
-                        1 - as.matrix(dist(x, method = "binary", diag = T, upper = T))
-                }
-        }
-} else {
-        jacdis <- function(x) {
-                1 - as.matrix(dist(x, method = "binary", diag = T, upper = T))
-        }
-}
+library(rdist)
 
 # function smi2fp
 # converts SMILES into fingerprint
@@ -62,32 +39,25 @@ smi2fp <- function(smi, type = "pubchem", circular.type = "ECFP6",
 
 # function fp2sim
 # returns similarity matrix from the matrix of fingerprints
-fp2sim <- function(fp, names = NULL, part = NULL, verbose = TRUE) {
-        t1 <- Sys.time()
-        if(verbose) print(t1)
-        if(is.null(part)) {
-                sim <- jacdis(fp)
-                if(verbose) print(dim(sim))
+fp2sim <- function(fp1, fp2 = NULL, verbose = TRUE) {
+        if(!is.null(fp2)) {
+                sim <- 1 - cdist(fp1, fp2, metric = "jaccard")
         } else {
-                sim <- matrix(nrow = part, ncol = nrow(fp) - part)
-                if(verbose) print(dim(sim))
-                for (r1 in 1:part) { 
-                        for (r2 in 1:(nrow(fp) - part)) {
-                                a1 <- fp[r1, ]
-                                a2 <- fp[r2 + part, ]
-                                b <- jacdis(rbind(a1, a2))[1,2]
-                                sim[r1, r2] <- b
-                        }
-                }
-                rownames(sim) <- 1:nrow(sim)
-                colnames(sim) <- 1:ncol(sim)
+                sim <- 1 - pdist(fp1, metric = "jaccard")
         }
-        t2 <- Sys.time()
-        if(verbose) print(t2)
-        if(verbose) print(t2-t1)
-        if(verbose) cat("\n")
-        gc()
         sim
+}
+
+# function remove_salt
+remove_salt <- function(smi) {
+        result <- rep(TRUE, length(smi))
+        split <- sapply(strsplit(smi, split = "[.]"), "[[", 1)
+        for(n in grep("[.]", smi)) {
+                if(sum(split == split[n]) > 1) {
+                        result[n] <- FALSE
+                }
+        }
+        result
 }
 
 # function plot_smi
@@ -194,43 +164,6 @@ smi2desc <- function(smi, type = "basic", as_matrix = TRUE, verbose = TRUE) {
         if(as_matrix) desc <- as.matrix(desc)
         rJava::.jgc()
         desc
-}
-
-# deprecated function fp2jacdis
-# returns similarity matrix from the matrix of fingerprints
-fp2jacdis <- function(matrix, names = NULL, part = NULL, verbose = TRUE) {
-        t1 <- Sys.time()
-        if(verbose) print(t1)
-        
-        if(is.null(part)) {
-                result <- matrix(nrow = nrow(matrix), ncol = nrow(matrix))
-                for (r1 in 1:nrow(matrix)) { 
-                        for (r2 in r1:nrow(matrix)) {
-                                a1 <- matrix[r1, ]
-                                a2 <- matrix[r2, ]
-                                b <- jacdis(a1, a2)
-                                result[r1, r2] <- b
-                                result[r2, r1] <- b
-                        }
-                }
-        } else {
-                result <- matrix(nrow = part, ncol = nrow(matrix) - part)
-                for (r1 in 1:part) { 
-                        for (r2 in 1:(nrow(matrix) - part)) {
-                                a1 <- matrix[r1, ]
-                                a2 <- matrix[r2 + part, ]
-                                b <- jacdis(a1, a2)
-                                result[r1, r2] <- b
-                        }
-                }
-        }
-        
-        t2 <- Sys.time()
-        if(verbose) print(t2)
-        if(verbose) print(t2-t1)
-        if(verbose) cat("\n")
-        
-        result
 }
 
 cat("Loaded:\n",
