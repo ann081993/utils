@@ -79,8 +79,8 @@ cid2cas <- function(cid) {
 # returns CID from a name using PubChem PUG REST API
 # derived from kegg_flavonoids.R written 2019-07-16
 name2cid <- function(name) {
-        cid <- tryCatch({ readLines(paste0("http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/",
-                                           name, "/cids/txt")) },
+        cid <- tryCatch({ readLines(URLencode(paste0("http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/",
+                                                     name, "/cids/txt"))) },
                         error = function(e) { return(NA) }
         )
         if(length(cid) > 1) {
