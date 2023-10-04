@@ -33,7 +33,7 @@ smi2fp <- function(smi, type = "pubchem", circular.type = "ECFP6",
                 } else if(verbose) cat("\n")
         }
         if(length(result) > 0 & as_matrix) result <- fp.to.matrix(result)
-        rJava::.jgc()
+        #rJava::.jgc()
         result
 }
 
@@ -99,12 +99,12 @@ smi_ncomp <- function(smi) {
 smi_largest <- function(smi) {
         if(length(smi) > 1) {
                 smi <- sapply(smi, smi_largest, USE.NAMES = F)
-                rJava::.jgc()
+                #rJava::.jgc()
                 smi
         } else {
                 smi <- parse.smiles(smi)[[1]]
                 smi <- get.smiles(get.largest.component(smi), flavor = smiles.flavors(c("Isomeric")))
-                rJava::.jgc()
+                #rJava::.jgc()
                 smi
         }
 }
@@ -135,7 +135,7 @@ parse.smiles.3d <- function(smi, iterator = FALSE) {
                 mol <- load.molecules("tmp.sdf")
                 message("... Molecules parsed with 3D coordinates")
         }
-        rJava::.jgc()
+        #rJava::.jgc()
         mol
 }
 
@@ -162,7 +162,7 @@ smi2desc <- function(smi, type = "basic", as_matrix = TRUE, verbose = TRUE) {
         desc <- desc[, !to_remove]
         
         if(as_matrix) desc <- as.matrix(desc)
-        rJava::.jgc()
+        #rJava::.jgc()
         desc
 }
 
