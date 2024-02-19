@@ -1,10 +1,10 @@
 #### fp_util_src
 # Author: Seungchan An
-library(rcdk)
-library(fingerprint)
-library(ChemmineOB)
-library(ChemmineR)
-library(rdist)
+require(rcdk)
+require(fingerprint)
+require(ChemmineOB)
+require(ChemmineR)
+require(rdist)
 
 # function smi2fp
 # converts SMILES into fingerprint
