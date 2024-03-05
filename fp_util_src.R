@@ -13,27 +13,38 @@ fp_types <- c("standard", "extended", "graph",
               "pubchem", "maccs", "kr", "estate", 
               'ECFP0', 'ECFP2', 'ECFP4', 'ECFP6', 'FCFP0', 'FCFP2', 'FCFP4', 'FCFP6')
 
-smi2fp <- function(smi, type = "pubchem", circular.type = "ECFP6",
-                   as_matrix = TRUE, verbose = TRUE) {
-        if(!(type %in% fp_types)) stop(paste0("Invalid fingerprint category specified\n\tSelect type arg from { ", paste(fp_types, collapse = " "), " }"))
-        result <- list()
-        ctypes <- c('ECFP0', 'ECFP2', 'ECFP4', 'ECFP6', 'FCFP0', 'FCFP2', 'FCFP4', 'FCFP6')
-        if(type %in% ctypes) {
-                circular.type = type
-                type = "circular"
-        }
+smi2fp <- function(smi, type = "pubchem", as_matrix = TRUE) {
+        gc()
         
-        for (i in smi) {
-                if(verbose) cat(i)
-                parsed_smi <- suppressWarnings(parse.smiles(i)[[1]])
-                fp <- try(get.fingerprint(parsed_smi, type = type, circular.type = circular.type), silent = TRUE)
-                if(!is(fp, 'try-error') | !is.null(parsed_smi)) {
-                        result <- append(result, fp)
-                        if(verbose) cat("\tO", "\n")
-                } else if(verbose) cat("\n")
+        parts <- ceiling(length(smi) / 200)
+        if(parts > 1) {
+                result <- NULL
+                for(p in 1:parts) {
+                        from = (200 * (p - 1) + 1)
+                        to = (200 * (p - 1) + ifelse((parts == p) & length(smi) %% 200 > 0, length(smi) %% 200, 200))
+                        
+                        result <- rbind(result, smi2fp(smi[from:to], type = type, as_matrix = T))
+                        gc()
+                        cat("... Fingerprinting ", from, "-", to, ":", p, "of", parts, "\n")
+                }
+        } else {
+                if(!(type %in% fp_types)) stop(paste0("Invalid fingerprint category specified\n\tSelect type arg from { ", paste(fp_types, collapse = " "), " }"))
+                result <- list()
+                ctypes <- c('ECFP0', 'ECFP2', 'ECFP4', 'ECFP6', 'FCFP0', 'FCFP2', 'FCFP4', 'FCFP6')
+                if(type %in% ctypes) {
+                        circular.type = type
+                        type = "circular"
+                }
+                
+                for(i in smi) {
+                        parsed_smi <- suppressWarnings(parse.smiles(i)[[1]])
+                        fp <- try(get.fingerprint(parsed_smi, type = type, circular.type = circular.type), silent = TRUE)
+                        if(!is(fp, 'try-error') | !is.null(parsed_smi)) {
+                                result <- append(result, fp)
+                        }
+                }
+                if(length(result) > 0 & as_matrix) result <- fp.to.matrix(result)
         }
-        if(length(result) > 0 & as_matrix) result <- fp.to.matrix(result)
-        #rJava::.jgc()
         result
 }
 
