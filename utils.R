@@ -46,5 +46,15 @@ pbar <- function() {
                 pb$tick()
         }
 }
-        
+
+# function list2df()
+# returns data.frame from the named list input
+list2df <- function(l) {
+        # Create the data frame
+        df <- data.frame(
+          value = unlist(l),  # Flatten all values
+          group = rep(names(l), times = lengths(l))  # Repeat names
+        )
+        df
+}
         
