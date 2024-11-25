@@ -185,7 +185,7 @@ BarPlot <- function(object, features = g, ncol = NULL, cols = NULL, error = "mea
         nfeat <- nrow(g_ex)
         
         if(is.null(ncol)) { ncol <- ceiling(sqrt(nfeat)) }
-        if(!is.null(group.by)) { Idents(object) <- object[[group.by]] }
+        if(!is.null(group.by)) { Idents(object) <- unlist(object[[group.by]]) }
         
         g_ex <- g_ex[, od, drop = FALSE]
         df <- melt(t(as.matrix(g_ex)), varnames = c("cell", "gene"))
