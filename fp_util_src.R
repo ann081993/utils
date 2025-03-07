@@ -105,6 +105,26 @@ smi_ncomp <- function(smi) {
         }
 }
 
+# function smi_mcs
+# returns maximum common structure (MCS) of given list of SMILES
+smi_mcs <- function(smi) {
+  if(length(smi) < 2) stop("Please provide 2 or more SMILES strings.")
+  #print(smi)
+  if(max(nchar(smi)) > 150) return(NA)
+  mcs <- get.mcs(parse.smiles(smi[1])[[1]], parse.smiles(smi[2])[[1]])
+  if(is.null(mcs)) return(NA)
+  smi_mcs <- get.smiles(mcs,
+                        flavor = smiles.flavors(c("Isomeric")))
+  smi <- smi[-1]
+  smi[1] <- smi_mcs
+  if(length(smi) == 1) {
+    gc()
+    return(smi)
+  } else {
+    smi_mcs(smi)
+  }
+}
+
 # function smi_largest
 # returns the largest component in SMILES
 smi_largest <- function(smi) {
