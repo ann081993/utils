@@ -86,7 +86,6 @@ theme_pub <- function() {
     axis.text.x = element_text(size = font_size, family = "Arial", color = font_color),
     axis.text.y = element_text(size = font_size, family = "Arial", color = font_color),
     strip.text = element_text(size = font_size, family = "Arial", color = font_color),
-    strip.background = element_rect(size = line_width, fill = NA, color = font_color),
     plot.title = element_text(size = font_size, family = "Arial", face = "plain",
                               color = font_color, hjust = 0.5, vjust = 0.5),
     axis.line = element_blank(), axis.line.x = element_blank(), axis.line.y = element_blank(),
