@@ -57,4 +57,107 @@ list2df <- function(l) {
         )
         df
 }
-        
+
+# plot utils
+library(ggplot2)
+library(ggpubr)
+library(ggsci)
+library(cowplot)
+
+if(.Platform$OS.type == "windows") {
+  if(!"Arial" %in% names(windowsFonts())) {
+    windowsFonts(Arial = windowsFont("Arial"))
+    message("'Arial' was registered in windowsFonts()")
+  }
+}
+
+font_size = 7
+line_width = 0.75 / 2.14
+font_color = "black"
+
+theme_pub <- function() {
+  theme(
+    plot.background = element_blank(),
+    strip.background = element_blank(),
+    panel.background = element_blank(),
+    panel.border = element_rect(linewidth = line_width, fill = NA, color = font_color),
+    axis.title.x = element_text(size = font_size, family = "Arial", color = font_color),
+    axis.title.y = element_text(size = font_size, family = "Arial", color = font_color, angle = 90),
+    axis.text.x = element_text(size = font_size, family = "Arial", color = font_color),
+    axis.text.y = element_text(size = font_size, family = "Arial", color = font_color),
+    strip.text = element_text(size = font_size, family = "Arial", color = font_color),
+    strip.background = element_rect(size = line_width, fill = NA, color = font_color),
+    plot.title = element_text(size = font_size, family = "Arial", face = "plain",
+                              color = font_color, hjust = 0.5, vjust = 0.5),
+    axis.line = element_blank(), axis.line.x = element_blank(), axis.line.y = element_blank(),
+    axis.ticks = element_line(linewidth = line_width, color = font_color),
+    axis.ticks.length = unit(0.05, "cm"),
+    plot.margin = margin(rep(0.03, 4), "cm"),
+    legend.background = element_blank(),
+    legend.box.background = element_blank(),
+    legend.margin = margin(), 
+    legend.text = element_text(size = font_size - 1),
+    legend.title = element_text(size = font_size - 1),
+    legend.frame = element_rect(linewidth = line_width, color = font_color),
+    legend.ticks = element_line(linewidth = line_width, color = font_color),
+    legend.ticks.length = unit(0.1, "cm"),
+    legend.key.width = unit(0.3, "cm"), 
+    legend.key.height = unit(0.4, "cm"),
+    legend.position = "right")
+}
+
+theme_no_axes <- function() {
+  return(
+    theme(
+      plot.background = element_blank(),
+      panel.background = element_blank(),
+      strip.background = element_blank(),
+      axis.text.x = element_blank(),
+      axis.text.y = element_blank(),
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      axis.line = element_blank(),
+      axis.ticks = element_blank())
+  )
+}
+
+theme_pub_white <- function() {
+  font_color = "white"
+  theme_pub()
+}
+
+plot_panel_resize <- function(gp, w, h) {
+  grob <- ggplotGrob(gp)
+  panel_index <- which(grob$layout$name == "panel")
+  grob$widths[grob$layout[panel_index, ]$l] <- unit(w, "cm")
+  grob$heights[grob$layout[panel_index, ]$t] <- unit(h, "cm")
+  grid.newpage()
+  grid.draw(grob)
+}
+
+y_zero <- function(y_expension = 0.1) {
+  scale_y_continuous(expand = expansion(mult = c(0, y_expension)), labels = function(l) {
+    # Check if there are any non-integer values
+    if (all(l == floor(l), na.rm = TRUE)) {
+      return(as.character(l))  # Keep integers as they are
+    } else {
+      max.decimals <- max(nchar(stringr::str_extract(as.character(l), "\\.[0-9]+")), na.rm = TRUE) - 1
+      lnew <- formatC(l, replace.zero = TRUE, zero.print = "0",
+                      digits = max.decimals, format = "f", preserve.width = TRUE)
+      return(lnew)
+    }
+  })
+}
+
+theme_pub_dens <- function() {
+  theme_pub() + theme(axis.text.y = element_blank(),
+                      axis.ticks.y = element_blank())
+}
+
+theme_dot <- function() {
+  theme_pub() + theme(panel.grid.major = element_line(color = "darkgray",
+                                                      linewidth = line_width, linetype = 3),
+                        axis.title.x = element_blank(),
+                        axis.title.y = element_blank(),
+                        axis.text.x = element_text(size = font_size, family = "Arial", color = "black", face = "italic"))
+}
