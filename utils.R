@@ -63,6 +63,7 @@ library(ggplot2)
 library(ggpubr)
 library(ggsci)
 library(cowplot)
+library(grid)
 
 if(.Platform$OS.type == "windows") {
   if(!"Arial" %in% names(windowsFonts())) {
