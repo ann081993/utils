@@ -94,7 +94,7 @@ theme_pub <- function() {
     plot.margin = margin(rep(0.03, 4), "cm"),
     legend.background = element_blank(),
     legend.box.background = element_blank(),
-    legend.margin = margin(), 
+    legend.margin = margin(rep(0.01, 4), "cm"),
     legend.text = element_text(size = font_size - 1),
     legend.title = element_text(size = font_size - 1),
     legend.frame = element_rect(linewidth = line_width, color = font_color),
