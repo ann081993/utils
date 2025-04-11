@@ -120,6 +120,13 @@ theme_no_axes <- function() {
   )
 }
 
+theme_no_legend <- function() {
+  return(
+    theme(
+      legend.position = "none"
+  )
+}
+
 theme_pub_white <- function() {
   font_color = "white"
   theme_pub()
