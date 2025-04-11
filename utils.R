@@ -108,7 +108,7 @@ theme_pub <- function() {
 
 theme_no_axes <- function() {
   return(
-    theme(
+    theme_pub() + theme(
       plot.background = element_blank(),
       panel.background = element_blank(),
       strip.background = element_blank(),
