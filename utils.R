@@ -78,6 +78,7 @@ font_color = "black"
 theme_pub <- function() {
   theme(
     plot.background = element_blank(),
+    plot.margin = margin(rep(0.03, 4), unit = "cm"),
     strip.background = element_blank(),
     panel.background = element_blank(),
     panel.border = element_rect(linewidth = line_width, fill = NA, color = font_color),
@@ -91,10 +92,9 @@ theme_pub <- function() {
     axis.line = element_blank(), axis.line.x = element_blank(), axis.line.y = element_blank(),
     axis.ticks = element_line(linewidth = line_width, color = font_color),
     axis.ticks.length = unit(0.05, "cm"),
-    plot.margin = margin(rep(0.03, 4), "cm"),
     legend.background = element_blank(),
     legend.box.background = element_blank(),
-    legend.margin = margin(rep(0.01, 4), "cm"),
+    legend.margin = margin(rep(0.01, 4), unit = "cm"),
     legend.text = element_text(size = font_size - 1),
     legend.title = element_text(size = font_size - 1),
     legend.frame = element_rect(linewidth = line_width, color = font_color),
