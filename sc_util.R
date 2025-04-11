@@ -158,6 +158,13 @@ ClusterDEG <- function(object, cont, exp, test.use = "wilcox") {
         de_results[de_results$p_val_adj < 0.05, ]
 }
 
+# function ClusterCor
+ClusterCor <- function(object) {
+        avex <- AverageExpression(object)$RNA
+        avex_cor <- cor(as.matrix(avex), method = "spearman")
+        heatmap(avex_cor, col = colorRampPalette(c("green", "white", "red"))(20), symm = T)
+}
+
 # function DotPlot2
 DotPlot2 <- function(object, features = g) {
         p <- DotPlot(object, features = features) +
