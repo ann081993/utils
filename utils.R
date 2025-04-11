@@ -122,8 +122,7 @@ theme_no_axes <- function() {
 
 theme_no_legend <- function() {
   return(
-    theme(
-      legend.position = "none"
+    theme(legend.position = "none")
   )
 }
 
