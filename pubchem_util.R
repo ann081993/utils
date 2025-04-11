@@ -55,6 +55,18 @@ smi2name <- function(smi) {
         return(result)
 }
 
+# function smi2cid()
+# returns PubChem CID from SMILES using PubChem PUG REST API
+smi2cid <- function(smi) {
+        result <- NA
+        data <- try(readLines(paste0("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/",
+                               smi, "/cids/txt"), n = 1), silent = T)
+        if(class(data) != "try-error") { result <- data }
+        if(length(result) > 1) result <- result[which.min(result)]
+        if(is.na(result)) result <- -999
+        return(result)
+}
+
 # function cid2name()
 # returns a name (preferred name) from CID using PubChem PUG REST API
 cid2name <- function(cid) {
