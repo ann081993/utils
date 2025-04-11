@@ -270,6 +270,246 @@ NoAxesTitle <- function(no_text_x = TRUE) {
         }
 }
 
+# functional enrichment analysis
+
+string_analysis <- function(gene_list, suffix = NULL, thr = 300) {
+  require(STRINGdb)
+  require(igraph)
+  require(export)
+  
+  string_db <- STRINGdb$new(species = 10090, version = "12.0", score_threshold = thr) # human 9606
+  mapped <- string_db$map(data.frame(gene = gene_list), "gene"); mapped <- mapped[complete.cases(mapped), ]
+  
+  annotations <- string_db$get_proteins()
+  mapped <- merge(mapped, annotations, by.x = "STRING_id", by.y = "protein_external_id",
+                  all.x = TRUE)
+  
+  interactions <- suppressWarnings(string_db$get_interactions(mapped$STRING_id))
+  interactions <- interactions[!duplicated(interactions), ]
+  edges <- interactions[, c("from", "to")]
+  edge_weights <- interactions$combined_score / 1000 
+  
+  net <- suppressWarnings(graph_from_data_frame(edges, directed = F))
+  V(net)$name <- mapped$preferred_name[match(V(net)$name, mapped$STRING_id)]
+  E(net)$weight <- edge_weights
+  
+  isol <- which(igraph::degree(net) == 0)
+  net <- delete_vertices(net, isol)
+  
+  de = igraph::degree(net)
+  st = igraph::strength(net)
+  
+  set.seed(1)
+  l <- igraph::layout_nicely(net)
+  
+  wc <- suppressWarnings(cluster_edge_betweenness(net, weights = E(net)$weight, directed = FALSE, bridges = TRUE))
+  mb <- membership(wc)
+
+  top_cluster <- which(table(mb) / length(mb) > 0.05)
+  vcolors <- rep("darkgray", length(V(net)))
+  for(tc in top_cluster) vcolors[mb == tc] <- lighten(categorical_pal(7), 0.1)[tc]
+  V(net)$color <- vcolors
+  
+  print(plot(net, layout = l,
+       edge.color = adjustcolor("black", 0.3), 
+       edge.width = (E(net)$weight^2)*3,
+       vertex.frame.color = "white", vertex.frame.width = 0.4,
+       vertex.size = st^0.5 * 2, 
+       vertex.label.dist = ifelse(st^0.5 > 2.5, 0, sample(c(-0.6, 0.6), length(V(net)), replace = T)),
+       mark.col = adjustcolor("gray", 0.3), mark.border = NA,
+       vertex.label.cex = 6 / 12, vertex.label.font = 3, vertex.label.color = "black", 
+       vertex.label.family = "Arial"))
+  
+  psize = max(as.integer(log2(length(V(net))) * 3) * 0.394, 2)
+  graph2ppt(file = paste("Fig STRING network", suffix),
+            width = psize,
+            height = psize)
+  print("STRING network was constructed.")
+  
+  require(gprofiler2)
+  res <- NULL
+  for(i in top_cluster) {
+    g = names(mb)[mb == i]
+    if(length(g) < 5) next
+    gostres <- gost(query = g, ordered_query = F, significant = T, evcodes = T,
+                    exclude_iea = T, sources = c("GO:BP"),
+                    organism = "mmusculus")
+    gostres$result <- gostres$result[!gostres$result$term_id %in% unlist(gostres$result$parents) & gostres$result$term_size < 500, ]
+    if(!is.null(gostres$result)) {
+      if(nrow(gostres$result) > 0) {
+        gostres$result$cluster <- i
+        res <- rbind(res, gostres$result)
+      }
+    }
+  }
+  if(is.null(res)) return()
+  
+  print("Enrichment analysis was performed.")
+  res2 <- res
+  res2$mlp <- -log10(res2$p_value)
+  res2$cluster <- factor(res2$cluster)
+  bl <- grep("protozoan|virus|bacter|fungu|built from|antimicrobial|vertebrate eye| poly|yeast", res2$term_name) # blacklist
+  if(length(bl) > 0) res2 <- res2[-bl, ]
+  res2$term_name[duplicated(res2$term_name)] <- paste0(" ", res2$term_name[duplicated(res2$term_name)])
+  p <- ggbarplot(res2, x = "term_name", xlab = "", ylab = "-log P",
+                 legend = "none",
+                 y = "mlp", fill = "cluster", color = NA,
+                 palette = colorspace::lighten(categorical_pal(7)[top_cluster], amount = 0.5)) +
+    geom_hline(yintercept = -log10(0.05),
+               linewidth = 3 / 8 / 1.07, linetype = 5,
+               color = "darkgray") +
+    rotate() + theme_pub() + theme(axis.text.y = element_text(size = 7))
+  
+  require(grid)
+  grob <- ggplotGrob(p)
+  panel_index <- which(grob$layout$name == "panel")
+  grob$widths[grob$layout[panel_index, ]$l] <- unit(1.5, "cm")
+  grob$heights[grob$layout[panel_index, ]$t] <- unit(nrow(p$data) * 0.22, "cm")
+  grid.newpage()
+  grid.draw(grob)
+  
+  graph2ppt(file = paste("Fig STRING enrichment", suffix),
+            width = (max(nchar(as.character(p$data$term_name))) / 10 + 3) * 0.394,
+            height = (nrow(p$data) * 0.3 + 1) * 0.394)
+  table2ppt(x = res2[, -c(1,2,12,14,15)], file = paste("Fig STRING enrichment", suffix), append = T, font = "Arial", pointsize = 6)
+}
+
+fgsea_analysis <- function(loading, suffix = "",
+                           category = c("C5", "H"), pathway_grep = "GOBP_|HALLMARK_|HP_",
+                           max_size = 300, nes_cutoff = 2) {
+  require(fgsea)
+  require(msigdbr)
+  require(data.table)
+  require(export)
+  
+  msigdbr_collections() %>% mutate(included = ifelse(gs_cat %in% category, "O", "")) %>% as.data.frame() %>% print()  
+  
+  sigs <- rbindlist(lapply(category, function(x) msigdbr(species = "mouse", category = x)))
+  sigs <- split(sigs$gene_symbol, sigs$gs_name)
+  sl <- sapply(sigs, length)
+  sigs <- sigs[sl > 5 & sl < max_size]
+  
+  # perform fgsea
+  set.seed(1)
+  fgsea_result <- fgsea(pathways = sigs, stats = loading, minSize = 3)
+  print("fgsea was successfully performed:")
+  
+  fgsea_result_sorted <- fgsea_result %>% mutate(leadingEdge = sapply(leadingEdge, toString)) %>% arrange(desc(NES))
+  write.csv(fgsea_result_sorted,
+            file = paste0("fgsea result ", suffix, ".csv"))
+  
+  print(paste("    total", nrow(fgsea_result), "pathways"))
+  fgsea_result <- fgsea_result[fgsea_result$padj < 0.05, ]
+  print(paste("   ", nrow(fgsea_result), "enriched pathways"))
+  
+  fgsea_result <- fgsea_result[grepl(pathway_grep, fgsea_result$pathway), ]
+  fgsea_result <- fgsea_result[abs(fgsea_result$NES) > nes_cutoff, ]
+  print(paste("   ", nrow(fgsea_result), "filtered pathways"))
+  
+  if(nrow(fgsea_result) > 30) {
+    print("Too many pathways to plot! Please adjust grep pattern (pathway_grep) or cutoff (nes_cutoff).")
+    print(head(fgsea_result_sorted, 20))
+    return()
+  }
+  require(ggrastr)
+  p2 <- data.frame(rank = 1:length(loading),
+                   metric = sort(loading, decreasing = T)) %>%
+    ggplot(aes(x = rank, y = metric, fill = metric)) +
+    rasterise(geom_bar(stat = "identity", size = 0), dpi = 600) +
+    scale_fill_gradient2(low = "blue", high = "red") +
+    geom_hline(yintercept = 0, linewidth = 3 / 8 / 1.07, color = "darkgray") +
+    xlab("Rank") + ylab("Metric") + y_zero(0) +
+    theme_pub() & NoLegend()
+  
+  for(pw in fgsea_result$pathway) {
+    pname <- pw; print(pw)
+    nes <- fgsea_result[fgsea_result$pathway == pname, "NES"]
+    pv <- fgsea_result[fgsea_result$pathway == pname, "padj"]; pv <- scales::scientific(pv, digits = 2)
+    gs <- paste0(unique(names(head(sort(loading[sigs[[pname]]], decreasing = T), 6))), collapse = ",")
+    p1 <- plotEnrichment(sigs[[pname]],
+                         loading, ticksSize = 2 / 8 / 1.07)
+    p1$layers <- p1$layers[-5]
+    
+    if(as.numeric(nes) > 0) {
+      p1$layers <- p1$layers[-4]
+    } else {
+      p1$layers <- p1$layers[-3]
+    }
+    
+    p1 <- p1 + ylab("Enrichment score") + 
+      ggtitle(paste0(c(pname,
+                       paste0("NES = ", round(nes, 3), " / adj. P = ", pv),
+                       gs), collapse = "\n")) +
+      geom_hline(yintercept = 0, linewidth = 3 / 8 / 1.07, color = "darkgray") +
+      theme_pub() + y_zero(0.05) +
+      theme(axis.ticks.x = element_blank(),
+            axis.text.x = element_blank(),
+            axis.title.x = element_blank())
+
+    print(plot_grid(plotlist = list(p1, p2), align = "v", ncol = 1, rel_heights = c(2,1)))
+    
+    graph2ppt(file = paste("Fig fgsea", suffix), width = 5.4 * 0.394, height = 4.5 * 0.394, append = T)
+  }
+}
+
+gprofiler_analysis <- function(gene_list, suffix = "", terms_of_interest = NULL, term_sources = "GO:BP") {
+  require(gprofiler2)
+  require(export)
+  
+  gostres <- gost(query = gene_list, ordered_query = F, significant = T, evcodes = T,
+                  exclude_iea = T, sources = term_sources,
+                  organism = "mmusculus")
+  
+  gostres$result <- gostres$result[!gostres$result$term_id %in% unlist(gostres$result$parents) & gostres$result$term_size < 1000, ]
+  
+  if(is.null(gostres$result)) return()
+  if(nrow(gostres$result) == 0) return()
+
+  res2 <- gostres$result
+  res2$mlp <- -log10(res2$p_value)
+  
+  bl <- grep("protozoan|virus|bacter|fungu|built from|antimicrobial|vertebrate eye| poly|yeast", res2$term_name) # blacklist
+  if(length(bl) > 0) res2 <- res2[-bl, ]
+  res2$term_name[duplicated(res2$term_name)] <- paste0(" ", res2$term_name[duplicated(res2$term_name)])
+  
+  if(!is.null(terms_of_interest)) {
+    if(sum(res2$term_name %in% terms_of_interest) > 0) {
+      res2 <- res2[res2$term_name %in% terms_of_interest, ]
+    } else {
+      res2 <- res2[grep(terms_of_interest, res2$term_name), ]
+    }
+  }
+  
+  res2 <- res2[nchar(res2$term_name) > 10, ]
+  
+  if(is.null(res2)) return()
+  p <- ggbarplot(res2, x = "term_name", xlab = "", ylab = "-log P",
+                 legend = "none",
+                 y = "mlp", fill = "darkgray", color = NA, amount = 0.5) +
+    geom_hline(yintercept = -log10(0.05),
+               linewidth = 3 / 8 / 1.07, linetype = 5,
+               color = "darkgray") +
+    rotate() + theme_pub() + theme(axis.text.y = element_text(size = 7))
+  
+  require(grid)
+  grob <- ggplotGrob(p)
+  panel_index <- which(grob$layout$name == "panel")
+  grob$widths[grob$layout[panel_index, ]$l] <- unit(1.5, "cm")
+  grob$heights[grob$layout[panel_index, ]$t] <- unit(nrow(p$data) * 0.22, "cm")
+  grid.newpage()
+  grid.draw(grob)
+  
+  graph2ppt(file = paste("Fig gprofiler enrichment", suffix),
+            width = (max(nchar(as.character(p$data$term_name))) / 10 + 3) * 0.394,
+            height = (nrow(p$data) * 0.3 + 1) * 0.394, append = T)
+  table2ppt(x = res2[, -c(1,2,12,14,15)], file = paste("Fig gprofiler enrichment", suffix),
+            append = T, font = "Arial", pointsize = 6) # remove parents ... etc
+  table2ppt(x = data.frame(V1 = c(paste("n =", length(gene_list)), gene_list), stringsAsFactors = FALSE),
+            file = paste("Fig gprofiler enrichment", suffix), append = T, font = "Arial", pointsize = 6, width = 5)
+}
+
+
 cat("Loaded:\n",
     " library ggplot2, ggpubr, patchwork, cowplot, reshape2 ...\n",
-    " function BarPlot(), CompositionAnalysis(), Subcluster() ...\n")
+    " function BarPlot(), CompositionAnalysis(), Subcluster() ...\n",
+    " functions for functional enrichment analyses gprofiler_analysis(), fgsea_analysis(), string_analysis() ...\n")
