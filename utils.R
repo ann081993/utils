@@ -72,11 +72,14 @@ if(.Platform$OS.type == "windows") {
   }
 }
 
-font_size = 7
-line_width = 0.75 / 2.14
+plot_factor = 1
 font_color = "black"
+print(paste("plot factor:", plot_factor))
 
 theme_pub <- function() {
+  font_size = 8 * plot_factor
+  line_width = 0.75 / 2.14 * plot_factor
+          
   theme(
     plot.background = element_blank(),
     plot.margin = margin(rep(0.03, 4), unit = "cm"),
@@ -92,7 +95,7 @@ theme_pub <- function() {
                               color = font_color, hjust = 0.5, vjust = 0.5),
     axis.line = element_blank(), axis.line.x = element_blank(), axis.line.y = element_blank(),
     axis.ticks = element_line(linewidth = line_width, color = font_color),
-    axis.ticks.length = unit(0.05, "cm"),
+    axis.ticks.length = unit(0.05 * plot_factor, "cm"),
     legend.background = element_blank(),
     legend.box.background = element_blank(),
     legend.margin = margin(rep(0.01, 4), unit = "cm"),
@@ -100,9 +103,9 @@ theme_pub <- function() {
     legend.title = element_text(size = font_size - 1, family = "Arial", color = font_color),
     legend.frame = element_rect(linewidth = line_width, color = font_color),
     legend.ticks = element_line(linewidth = line_width, color = font_color),
-    legend.ticks.length = unit(0.1, "cm"),
-    legend.key.width = unit(0.3, "cm"), 
-    legend.key.height = unit(0.4, "cm"),
+    legend.ticks.length = unit(0.1 * plot_factor, "cm"),
+    legend.key.width = unit(0.3 * plot_factor, "cm"), 
+    legend.key.height = unit(0.4 * plot_factor, "cm"),
     legend.position = "right")
 }
 
@@ -164,6 +167,5 @@ theme_dot <- function() {
   theme_pub() + theme(panel.grid.major = element_line(color = "darkgray",
                                                       linewidth = line_width, linetype = 3),
                         axis.title.x = element_blank(),
-                        axis.title.y = element_blank(),
-                        axis.text.x = element_text(size = font_size, family = "Arial", color = "black", face = "italic"))
+                        axis.title.y = element_blank())
 }
