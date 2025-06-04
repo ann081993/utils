@@ -72,13 +72,15 @@ if(.Platform$OS.type == "windows") {
   }
 }
 
-plot_factor = 1
 font_color = "black"
+font_size = 8
+line_width = 0.75 / 2.14
+plot_factor = 1
 print(paste("plot factor:", plot_factor))
 
 theme_pub <- function() {
-  font_size = 8 * plot_factor
-  line_width = 0.75 / 2.14 * plot_factor
+  font_size = font_size * plot_factor
+  line_width = line_width * plot_factor
           
   theme(
     plot.background = element_blank(),
