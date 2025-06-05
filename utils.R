@@ -73,6 +73,7 @@ if(.Platform$OS.type == "windows") {
 }
 
 font_color = "black"
+font_face = "plain"
 font_size = 8
 line_width = 0.75 / 2.14
 plot_factor = 1
@@ -88,12 +89,12 @@ theme_pub <- function() {
     strip.background = element_blank(),
     panel.background = element_blank(),
     panel.border = element_rect(linewidth = line_width, fill = NA, color = font_color),
-    axis.title.x = element_text(size = font_size, family = "Arial", color = font_color),
-    axis.title.y = element_text(size = font_size, family = "Arial", color = font_color, angle = 90),
-    axis.text.x = element_text(size = font_size, family = "Arial", color = font_color),
-    axis.text.y = element_text(size = font_size, family = "Arial", color = font_color),
-    strip.text = element_text(size = font_size, family = "Arial", color = font_color),
-    plot.title = element_text(size = font_size, family = "Arial", face = "plain",
+    axis.title.x = element_text(size = font_size, family = "Arial", color = font_color, face = font_face),
+    axis.title.y = element_text(size = font_size, family = "Arial", color = font_color, angle = 90, face = font_face),
+    axis.text.x = element_text(size = font_size, family = "Arial", color = font_color, face = font_face),
+    axis.text.y = element_text(size = font_size, family = "Arial", color = font_color, face = font_face),
+    strip.text = element_text(size = font_size, family = "Arial", color = font_color, face = font_face),
+    plot.title = element_text(size = font_size, family = "Arial", face = font_face,
                               color = font_color, hjust = 0.5, vjust = 0.5),
     axis.line = element_blank(), axis.line.x = element_blank(), axis.line.y = element_blank(),
     axis.ticks = element_line(linewidth = line_width, color = font_color),
@@ -101,8 +102,8 @@ theme_pub <- function() {
     legend.background = element_blank(),
     legend.box.background = element_blank(),
     legend.margin = margin(rep(0.01, 4), unit = "cm"),
-    legend.text = element_text(size = font_size - 1, family = "Arial", color = font_color),
-    legend.title = element_text(size = font_size - 1, family = "Arial", color = font_color),
+    legend.text = element_text(size = font_size - 1, family = "Arial", color = font_color, face = font_face),
+    legend.title = element_text(size = font_size - 1, family = "Arial", color = font_color, face = font_face),
     legend.frame = element_rect(linewidth = line_width, color = font_color),
     legend.ticks = element_line(linewidth = line_width, color = font_color),
     legend.ticks.length = unit(0.1 * plot_factor, "cm"),
